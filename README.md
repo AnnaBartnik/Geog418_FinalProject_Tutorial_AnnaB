@@ -204,7 +204,6 @@ print(average_temp_may_october)
 
 # --- Part 2: Prepare climate data for merging ---
 
-  
   # Extract the filename (station ID) from the file path
   file_name <- basename(file_name)                # Get the file name with extension
   file_name_no_ext <- sub("\\.[^.]*$", "", file_name)  # Remove the file extension
@@ -283,7 +282,7 @@ This section will introduce the study area (British Columbia) and outline the da
 One of the key goals of this tutorial is to explore how poorly distributed climate data can lead to clustering issues. To illustrate this, scatterplots or density maps will be used to visualize the spatial distribution of wildfire incidents and climate data points. This visualization helps in understanding the challenges of data clustering and how it may affect the results of spatial regression and interpolation.
 (Placeholder: Introduce BC as the study area, with a focus on wildfire and climate station distributions.)
 
-ritish Columbia (BC), Canada’s westernmost province, is characterized by its vast and diverse landscapes, including coastal rainforests, arid interior plateaus, and mountainous regions. The province experiences varied climatic conditions, ranging from mild coastal weather to harsher continental climates in the interior. This diverse geography and climate make BC an ideal study area for analyzing environmental phenomena such as wildfires and climate variability.
+British Columbia (BC), Canada’s westernmost province, is characterized by its vast and diverse landscapes, including coastal rainforests, arid interior plateaus, and mountainous regions. The province experiences varied climatic conditions, ranging from mild coastal weather to harsher continental climates in the interior. This diverse geography and climate make BC an ideal study area for analyzing environmental phenomena such as wildfires and climate variability.
 
 Wildfires are a significant concern in BC due to their increasing frequency and intensity, exacerbated by climate change. The province regularly faces challenges in managing wildfire risks, particularly in regions with dry climates and dense vegetation. This tutorial focuses on the spatial distribution of wildfire incidents and climate data within BC to explore the challenges posed by uneven data distribution and clustering in spatial analysis.
 
@@ -316,6 +315,7 @@ bc_SHP_boundary <- st_transform(bc_SHP_boundary, crs = 3005)
 
 
 ```
+Next, we will plot the climate stations on the BC shp. boundary and save the map to our directory.
 ```{r Climate station map, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
 # Plot the climate station map
 ggsave(
@@ -353,7 +353,10 @@ fire_points <- st_read(fire_shapefile)
 
 # Transform fire points CRS to match BC boundary
 fire_points <- st_transform(fire_points, crs = 3005)
-
+```
+Next, we will plot the WildFire points on the BC shp. boundary and save the map to our directory.
+```{r wildfire map printing, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
+# Load wildfire data shapefile
 # Create a map with wildfire points
 # Save the wildfire map as a PNG file
 ggsave(
@@ -382,7 +385,6 @@ ggsave(
   dpi = 300    # Resolution in dots per inch
 )
 
-```
 ```
 
 # 4. Methods
