@@ -339,7 +339,10 @@ ggsave(
 )
 
 ```
+# Climate Station Map
+This map shows the spatial distribution of climate stations across British Columbia.
 
+![Climate Station Map](path-to-your-image/climate_station_map.png)
 
 ## Wildfire Point Data Map
 Data Preparation and Shapefile Transformation
