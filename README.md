@@ -286,7 +286,7 @@ British Columbia (BC), Canada’s westernmost province, is characterized by its 
 
 Wildfires are a significant concern in BC due to their increasing frequency and intensity, exacerbated by climate change. The province regularly faces challenges in managing wildfire risks, particularly in regions with dry climates and dense vegetation. This tutorial focuses on the spatial distribution of wildfire incidents and climate data within BC to explore the challenges posed by uneven data distribution and clustering in spatial analysis.
 
-## Climate station map
+## Creating the Climate Station Map
 This section demonstrates how to convert the climate data into a spatial object (shapefile) for visualization.
 
 ```{r starting to make maps, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
@@ -340,11 +340,10 @@ ggsave(
 
 ```
 # Climate Station Map
-This map shows the spatial distribution of climate stations across British Columbia.
-
 ![Climate Station Map](climate_station_map.png)
+*Figure 1: Spatial distribution of climate stations in British Columbia.* This map shows the spatial distribution of climate stations across British Columbia.
 
-## Wildfire Point Data Map
+## Creating the Wildfire Point Data Map
 Data Preparation and Shapefile Transformation
 This section explains how to read and transform the wildfire shapefile into the same CRS as the rest of the spatial data.
 \newpage
@@ -390,16 +389,21 @@ ggsave(
 
 ```
 # Wildfire Point Data Map
-This map illustrates the locations of wildfire incidents in British Columbia (2023).
 
 ![Wildfire Point Data Map](wildfire_points_map.png)
+*Figure 2: Locations of wildfire incidents in British Columbia (2023).* This map illustrates the locations of wildfire incidents in British Columbia (2023).
+
 # 4. Methods and Results
 ## Spatial Interpolation of Climate Data:
 
 ## IDW Interpolation
-To better understand the spatial distribution of temperature across British Columbia, we will perform spatial interpolation using the Inverse Distance Weighting (IDW) method. IDW estimates unknown values based on the values of nearby points, weighting them inversely proportional to their distance. This method is particularly useful for climate data, as it assumes that points closer together are more similar.
-As you'll see the generated IDW is very inaccurate you cannt have such high highs and low lows beside eachother....
-```{r Spatial Interpolation IDW, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
+In this section, we will use the Inverse Distance Weighting (IDW) method to interpolate temperature data across British Columbia (BC) and visualize the results. IDW is a spatial interpolation technique where values at unsampled locations are estimated based on a weighted average of nearby sampled points. The influence of each point diminishes with distance from the target location, and this method is often used for climate data because it assumes that nearby locations have more similar values than those farther apart.
+
+Now we will walk through the steps involved, explain their purpose, and provide R code to perform each step.
+
+Load the Climate Data and BC Boundary Shapefiles
+Before performing IDW, we need to load the climate data (e.g., temperature measurements from various stations) and the BC boundary shapefile. This allows us to know the geographic extent for which we will perform interpolation and clipping.
+```{r loading climate data for IDW, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
 # Load the climate data and BC boundary shapefiles
 climate_data <- st_read("ClimateData.shp")
 bc_SHP_boundary <- st_read("BC.shp")
@@ -407,11 +411,17 @@ bc_SHP_boundary <- st_read("BC.shp")
 # Transform the BC boundary to EPSG: 3005 to ensure a consistent CRS
 bc_SHP_boundary <- st_as_sf(bc_SHP_boundary, coords = c("Longitude", "Latitude"), crs = 3347)
 bc_SHP_boundary <- st_transform(bc_SHP_boundary, crs = 3005)
+```
 
+Next, we create a grid within the BC boundary extent. The grid will serve as the location for interpolated temperature values. We use the st_make_grid() function to create a spatial grid with a specified cell size (e.g., 25,000 meters). A finer grid would provide more detail but could increase computational complexity.
+
+```{r Create a Grid for Interpolation IDW, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
 # Create a grid for interpolation within the BC boundary extent
 bbox <- st_bbox(bc_SHP_boundary)
-grid <- st_make_grid(st_as_sfc(bbox), cellsize = c(50000, 50000))
-
+grid <- st_make_grid(st_as_sfc(bbox), cellsize = c(25000, 25000))
+```
+Next, we create a grid within the BC boundary extent. The grid will serve as the location for interpolated temperature values. We use the st_make_grid() function to create a spatial grid with a specified cell size (e.g., 50,000 meters). A finer grid would provide more detail but could increase computational complexity.The IDW method generates continuous predictions for temperature at each point in the grid, providing an estimation for locations where we don’t have observed data. The idp parameter controls the smoothness of the interpolation. After performing the interpolation, the result is returned as a SpatialPointsDataFrame. To work with this result more easily, we convert it into an sf object, which integrates seamlessly with other spatial functions in R.
+```{r Actual Interpolation IDW, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
 # Perform IDW interpolation
 idw_result <- gstat::idw(TEMP ~ 1, 
                          locations = climate_data, 
@@ -420,7 +430,10 @@ idw_result <- gstat::idw(TEMP ~ 1,
 
 # Convert the result to an sf object for easier handling
 idw_sf <- st_as_sf(idw_result)
+```
+We now visualize the interpolated temperature surface using ggplot2. The geom_sf() function plots the interpolated data, and scale_fill_viridis_c() applies a color scale to the temperature values. This map provides a visual representation of the temperature distribution across BC.
 
+``{r plot IDW, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
 # Visualize the IDW interpolation
 ggplot(data = idw_sf) +
   geom_sf(aes(fill = var1.pred), color = NA) +
@@ -439,7 +452,8 @@ st_write(idw_sf, "IDW_Result.shp", driver = "ESRI Shapefile", delete_dsn = TRUE)
 ```
 
 #### Clipping Interpolated Results to BC Boundary
-The IDW interpolation generates temperature predictions for the entire grid, including areas outside the BC boundary. To focus on relevant data, we clip the interpolated results to match the BC boundary shapefile. This ensures that our analysis only includes temperature predictions within British Columbia.
+Since the IDW interpolation generates temperature predictions for the entire grid, it includes areas outside the BC boundary. To focus on relevant data, we use st_intersection() to clip the results to match the BC boundary. This ensures that only temperature predictions within British Columbia are retained. Clipping the results to the BC boundary prevents irrelevant data from being included and ensures that the final map corresponds only to the area of interest.
+
 \newpage
 ```{r Clip IDW to BC Boundary, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
 # Check and align the CRS of the IDW results and BC boundary
@@ -521,7 +535,7 @@ The Kriging interpolation generated a detailed spatial prediction surface for te
 #-----onto kriging! ----#
 
 # Create a regular grid for interpolation
-cellsize <- 5000  # Resolution of grid
+cellsize <- 25000  # Resolution of grid
 grd <- st_make_grid(st_bbox(bc_SHP_boundary), cellsize = cellsize, what = "centers")
 grd <- st_as_sf(grd, crs = st_crs(bc_SHP_boundary))
 grd_sp <- as(grd, "Spatial")  # Convert to SpatialPoints for kriging
