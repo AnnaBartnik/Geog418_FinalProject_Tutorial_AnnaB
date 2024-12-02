@@ -393,88 +393,12 @@ ggsave(
 This map illustrates the locations of wildfire incidents in British Columbia (2023).
 
 ![Wildfire Point Data Map](wildfire_points_map.png)
-# 4. Methods
+# 4. Methods and Results
 ## Spatial Interpolation of Climate Data:
 
 ## IDW Interpolation
 To better understand the spatial distribution of temperature across British Columbia, we will perform spatial interpolation using the Inverse Distance Weighting (IDW) method. IDW estimates unknown values based on the values of nearby points, weighting them inversely proportional to their distance. This method is particularly useful for climate data, as it assumes that points closer together are more similar.
-Asyoull see the generated IDW is very inacurate you can t have such high highs and low lows beside eachother....
-
-#### Clipping Interpolated Results to BC Boundary
-The IDW interpolation generates temperature predictions for the entire grid, including areas outside the BC boundary. To focus on relevant data, we clip the interpolated results to match the BC boundary shapefile. This ensures that our analysis only includes temperature predictions within British Columbia.
-
-#### Summary of IDW Results
-The IDW interpolation successfully generated a temperature surface, highlighting variations across British Columbia. Clipping the results to the BC boundary ensured a geographically relevant output, excluding interpolated values for regions outside the province. The final visualization provides a clear representation of predicted temperatures, which can be used for further analysis or comparison with alternative methods like Kriging.
-
-## Kriging
-Kriging is a geostatistical interpolation method that generates predictions for unmeasured locations based on spatial autocorrelation. It incorporates both distance and the degree of variation between points, making it a robust method for analyzing climate data. In this section, we will:
-
-1. Fit a variogram to model spatial dependence in the data.
-2. Use the fitted variogram for Kriging interpolation.
-3. Clip the results to the boundary of British Columbia for spatial relevance.
-
-### Variogram Fitting
-To perform Kriging, we first need to fit a variogram, which models how spatial correlation changes with distance. Here, we use a spherical model, which is commonly applied to climate data.
-
-### The fitted variogram provides the parameters required for Kriging, including the nugget, partial sill, and range. These values describe the spatial variability in temperature data.
-
-### Kriging Interpolation
-Using the fitted variogram, we generate predicted temperature values for a grid covering the study area. The grid resolution is chosen to balance computational efficiency and spatial detail.
-
-### Summary of Kriging Results
-The Kriging interpolation generated a detailed spatial prediction surface for temperature in British Columbia. The clipped raster highlights the temperature distribution within the province, showcasing the utility of geostatistical methods in climate analysis. The visualization provides a robust foundation for understanding temperature variability across the region.
-
-## Density Map Creation Section:
-
-Start from here to create the density map, which is the core of your spatial analysis:
-
-####Outputting and Saving the Results:
-
-You then save the results of the density map to a shapefile and generate another visualization for confirmation:
-
-### Combining Climate and Events Data
-In this section, the climate data and event density data are combined by performing a spatial join. This allows us to analyze the relationship between temperature and the number of events (fires). The following steps outline the data processing workflow:
-
-### Spatial Join and Data Preparation
-The spatial join was performed to overlay the event density values onto the interpolated climate surface. This ensures that each polygon in the interpolated surface includes information about nearby event densities.
-
-
-### Visualizing the Combined Data
-A map was created to visualize the spatial distribution of temperature and events. The map highlights areas of higher event density, providing insights into possible correlations with temperature.
-
-## Performing Ordinary Least Squares (OLS) Regression
-Ordinary Least Squares (OLS) regression was applied to analyze the relationship between temperature and the frequency of events (fires). The analysis includes model fitting, residual calculation, and spatial visualization to assess model performance.
-
-#### Data Preparation
-The spatial data containing temperature and fire information was read into R. Residuals from the OLS model were calculated and added back to the spatial data for further analysis.
-
-## Geographically Weighted Regression (GWR) Analysis
-GWR was applied to explore the spatial variability in the relationship between temperature (`temprtr`) and the number of fires. Two versions of GWR were implemented: one using a fixed bandwidth of 200 km and another using an optimal bandwidth determined by Ben's code.
-o analyze the spatial relationship between temperature (`temprtr`) and the number of fires, two GWR models were created:  
-1. **Fixed Bandwidth Model:** A consistent spatial influence (200 km bandwidth).  
-2. **Optimal Bandwidth Model:** The bandwidth automatically determined using `gwr.sel`.
-
-### Data Preparation
-Spatial data was read and prepared for GWR by creating neighborhood structures, converting the data to a suitable spatial format, and ensuring numeric variables for analysis.
-
-### GWR with Fixed Bandwidth
-A fixed bandwidth of 200 km was used to perform GWR. This method applies the same spatial influence across all locations.
-
-Model Results
-The fixed bandwidth GWR model coefficients and their spatial distribution are visualized below.
-
-### GWR with Optimal Bandwidth
-Using gwr.sel, the optimal bandwidth was determined and used for GWR analysis.
-
-
-
-
-
-
-
-
-
-# 4. Results
+As you'll see the generated IDW is very inaccurate you cannt have such high highs and low lows beside eachother....
 ```{r Spatial Interpolation IDW, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
 # Load the climate data and BC boundary shapefiles
 climate_data <- st_read("ClimateData.shp")
@@ -516,7 +440,6 @@ st_write(idw_sf, "IDW_Result.shp", driver = "ESRI Shapefile", delete_dsn = TRUE)
 
 #### Clipping Interpolated Results to BC Boundary
 The IDW interpolation generates temperature predictions for the entire grid, including areas outside the BC boundary. To focus on relevant data, we clip the interpolated results to match the BC boundary shapefile. This ensures that our analysis only includes temperature predictions within British Columbia.
-
 \newpage
 ```{r Clip IDW to BC Boundary, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
 # Check and align the CRS of the IDW results and BC boundary
@@ -584,6 +507,8 @@ dat.fit <- fit.variogram(var.smpl, fit.ranges = TRUE, fit.sills = TRUE,
 plot(var.smpl, dat.fit)
 ```
 
+
+
 ### The fitted variogram provides the parameters required for Kriging, including the nugget, partial sill, and range. These values describe the spatial variability in temperature data.
 
 ### Kriging Interpolation
@@ -591,8 +516,6 @@ Using the fitted variogram, we generate predicted temperature values for a grid 
 
 ### Summary of Kriging Results
 The Kriging interpolation generated a detailed spatial prediction surface for temperature in British Columbia. The clipped raster highlights the temperature distribution within the province, showcasing the utility of geostatistical methods in climate analysis. The visualization provides a robust foundation for understanding temperature variability across the region.
-
-
 \newpage
 ```{r trying all kriging at once before party, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
 #-----onto kriging! ----#
@@ -630,6 +553,7 @@ tm_shape(clipped_raster) +
 
 
 ```
+
 
 
 ## Density Map Creation Section:
@@ -682,10 +606,10 @@ ggplot() +
        fill = "Density")
 ```
 
-####Outputting and Saving the Results:
+
+#### Outputting and Saving the Results:
 
 You then save the results of the density map to a shapefile and generate another visualization for confirmation:
-\newpage
 ```{r density map3, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
 # Write to a shapefile
 st_write(density_sf, "density_points.shp", delete_dsn = TRUE)
@@ -702,12 +626,13 @@ ggplot() +
 
 ```
 
+
+
 ### Combining Climate and Events Data
 In this section, the climate data and event density data are combined by performing a spatial join. This allows us to analyze the relationship between temperature and the number of events (fires). The following steps outline the data processing workflow:
 
 ### Spatial Join and Data Preparation
 The spatial join was performed to overlay the event density values onto the interpolated climate surface. This ensures that each polygon in the interpolated surface includes information about nearby event densities.
-
 
 ```{r spatial-join, echo=TRUE, message=FALSE, warning=FALSE, results = "hide"}
 # Perform the spatial join
@@ -727,7 +652,6 @@ final_data <- final_data %>%
 
 ### Visualizing the Combined Data
 A map was created to visualize the spatial distribution of temperature and events. The map highlights areas of higher event density, providing insights into possible correlations with temperature.
-\newpage
 ```{r create climate data map , echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
 # Create the map
 ggplot(data = final_data) +
@@ -748,6 +672,8 @@ final_data_df <- st_drop_geometry(final_data)
 # Write as CSV
 write.csv(final_data_df, "final_data.csv", row.names = FALSE)
 ```
+
+
 
 ## Performing Ordinary Least Squares (OLS) Regression
 Ordinary Least Squares (OLS) regression was applied to analyze the relationship between temperature and the frequency of events (fires). The analysis includes model fitting, residual calculation, and spatial visualization to assess model performance.
@@ -786,6 +712,8 @@ ggplot(data = final_data_sf) +
 ggsave("residuals_map.png", width = 10, height = 8, dpi = 300)
 ```
 
+
+
 ## Geographically Weighted Regression (GWR) Analysis
 GWR was applied to explore the spatial variability in the relationship between temperature (`temprtr`) and the number of fires. Two versions of GWR were implemented: one using a fixed bandwidth of 200 km and another using an optimal bandwidth determined by Ben's code.
 o analyze the spatial relationship between temperature (`temprtr`) and the number of fires, two GWR models were created:  
@@ -794,7 +722,6 @@ o analyze the spatial relationship between temperature (`temprtr`) and the numbe
 
 ### Data Preparation
 Spatial data was read and prepared for GWR by creating neighborhood structures, converting the data to a suitable spatial format, and ensuring numeric variables for analysis.
-
 ```{r data-preparation, echo=FALSE, message=FALSE, warning=FALSE, results = "hide"}
 # Read the shapefile (with residuals included)
 final_data_sf <- st_read("final_data.shp")
@@ -821,7 +748,6 @@ A fixed bandwidth of 200 km was used to perform GWR. This method applies the sam
 
 Model Results
 The fixed bandwidth GWR model coefficients and their spatial distribution are visualized below.
-
 \newpage
 ```{r GWR fixed Bandwidth, echo=FALSE, message=FALSE, warning=FALSE, results = "hide"}
 # Prepare variables
@@ -862,8 +788,10 @@ ggplot(data = gwr_output_sf_fixed) +
 ggsave("gwr_fixed_bandwidth.png", width = 10, height = 8, dpi = 300)
 ```
 
+
 ### GWR with Optimal Bandwidth
 Using gwr.sel, the optimal bandwidth was determined and used for GWR analysis.
+
 \newpage
 ```{r GWR Optimal Bandwidth, echo=FALSE, message=FALSE, warning=FALSE, results = "hide"}
 # Select optimal bandwidth
@@ -906,6 +834,3 @@ ggsave("gwr_optimal_bandwidth.png", width = 10, height = 8, dpi = 300)
 # 7. Room For Improvement
 
 # 8. conclusion
-
-
-
