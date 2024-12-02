@@ -469,7 +469,9 @@ if (crs_idw != crs_polygon) {
 
 # Clip the IDW results to the BC boundary
 idw_clipped <- st_intersection(idw_sf, bc_SHP_boundary)
-
+```
+Finally, we can plot the clipped results to visualize the temperature distribution across British Columbia within the boundary. This map provides the final output of the IDW interpolation.
+```{r plot clipped IDW to BC Boundary, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
 # Plot the clipped interpolation results
 ggplot(data = idw_clipped) +
   geom_sf(aes(fill = var1.pred), color = NA) +
@@ -486,9 +488,15 @@ ggplot(data = idw_clipped) +
 # Save the clipped results as a map
 ggsave("Clipped_IDW_Interpolation_Map.png", width = 10, height = 8, dpi = 300)
 ```
+# Clipped IDW map
 
-#### Summary of IDW Results
-The IDW interpolation successfully generated a temperature surface, highlighting variations across British Columbia. Clipping the results to the BC boundary ensured a geographically relevant output, excluding interpolated values for regions outside the province. The final visualization provides a clear representation of predicted temperatures, which can be used for further analysis or comparison with alternative methods like Kriging.
+![IDW Map](Clipped_IDW_Interpolation_Map.png)
+Figure 3. *Clipped IDW Temperature Interpolation Map for British Columbia*
+
+The clipped IDW map illustrates temperature interpolations based on station data across British Columbia. Due to the close proximity of stations and their limited coverage, the IDW method struggles to generate reliable predictions for areas with sparse data. This results in unrealistic temperature variations, with high temperatures above 22.5°C occurring adjacent to much lower temperatures below 15°C. These inconsistencies are attributed to the insufficient distribution of stations and the limitations of the IDW algorithm in accurately predicting temperature values for regions without direct observations.
+
+### Summary of IDW Results: 
+The IDW interpolation generated a temperature surface that highlights temperature variations across British Columbia. Clipping the results to the province's boundaries ensured that the map only included relevant data, excluding interpolated values outside the region. While the map provides a broad overview of predicted temperatures, the unrealistic temperature contrasts observed between nearby areas indicate the method's limitations, especially in regions with sparse station data. This generalization may lead to misleading interpretations and could affect comparisons with other spatial interpolation methods, such as Kriging, in future analyses.
 
 ## Kriging
 Kriging is a geostatistical interpolation method that generates predictions for unmeasured locations based on spatial autocorrelation. It incorporates both distance and the degree of variation between points, making it a robust method for analyzing climate data. In this section, we will:
