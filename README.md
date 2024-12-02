@@ -395,14 +395,29 @@ ggsave(
 
 # 4. Methods and Results
 ## Spatial Interpolation of Climate Data:
+Spatial interpolation is a powerful tool in geospatial analysis, allowing us to estimate values at unsampled locations based on measurements taken at known points.
 
 ## IDW Interpolation
-In this section, we will use the Inverse Distance Weighting (IDW) method to interpolate temperature data across British Columbia (BC) and visualize the results. IDW is a spatial interpolation technique where values at unsampled locations are estimated based on a weighted average of nearby sampled points. The influence of each point diminishes with distance from the target location, and this method is often used for climate data because it assumes that nearby locations have more similar values than those farther apart.
+In this section, we will use the Inverse Distance Weighting (IDW) method to interpolate temperature data across British Columbia (BC) and visualize the results. IDW is a spatial interpolation technique where values at unsampled locations are estimated based on a weighted average of nearby sampled points. IDW assumes that values at nearby locations are more similar than those farther apart, weighting observations inversely proportional to their distance from the target location. The influence of each point diminishes with distance from the target location, and This method is particularly well-suited for climate data, as environmental variables like temperature often exhibit spatial autocorrelation.
 
-Now we will walk through the steps involved, explain their purpose, and provide R code to perform each step.
+The IDW approach calculates the estimated value 
+𝑍𝑖 at an unsampled location 
+𝑖 as a weighted average of known values 𝑍𝑗
 
-Load the Climate Data and BC Boundary Shapefiles
-Before performing IDW, we need to load the climate data (e.g., temperature measurements from various stations) and the BC boundary shapefile. This allows us to know the geographic extent for which we will perform interpolation and clipping.
+![IDW Equation](IDW_Equation.png)
+
+Where: 
+* Zj is the known value at sampled location 𝑗
+* dij is the distance between locations 𝑖 and 𝑗
+* p Power parameter controlling the rate at which influence decreases with distance
+
+The power parameter (𝑝) is critical in determining the smoothness of the interpolation. A higher 𝑝 gives more weight to closer points, leading to sharper transitions in predicted values.
+
+#### Now we will walk through the steps involved, explain their purpose, and provide R code to perform each step.
+
+Preparing Data
+We begin by loading the necessary climate data and BC boundary shapefiles. This ensures that the interpolation is confined to the geographic extent of BC. This allows us to know the geographic extent for which we will perform interpolation and clipping.
+
 ```{r loading climate data for IDW, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
 # Load the climate data and BC boundary shapefiles
 climate_data <- st_read("ClimateData.shp")
@@ -420,7 +435,8 @@ Next, we create a grid within the BC boundary extent. The grid will serve as the
 bbox <- st_bbox(bc_SHP_boundary)
 grid <- st_make_grid(st_as_sfc(bbox), cellsize = c(25000, 25000))
 ```
-Next, we create a grid within the BC boundary extent. The grid will serve as the location for interpolated temperature values. We use the st_make_grid() function to create a spatial grid with a specified cell size (e.g., 50,000 meters). A finer grid would provide more detail but could increase computational complexity.The IDW method generates continuous predictions for temperature at each point in the grid, providing an estimation for locations where we don’t have observed data. The idp parameter controls the smoothness of the interpolation. After performing the interpolation, the result is returned as a SpatialPointsDataFrame. To work with this result more easily, we convert it into an sf object, which integrates seamlessly with other spatial functions in R.
+Next, we run the idw calculation and generate continuous predictions for temperature at each point in the grid, providing an estimation for locations where we don’t have observed data. The idp parameter controls the smoothness of the interpolation. After performing the interpolation, the result is returned as a SpatialPointsDataFrame. To work with this result more easily, we convert it into an sf object, which integrates seamlessly with other spatial functions in R.
+
 ```{r Actual Interpolation IDW, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
 # Perform IDW interpolation
 idw_result <- gstat::idw(TEMP ~ 1, 
@@ -431,7 +447,7 @@ idw_result <- gstat::idw(TEMP ~ 1,
 # Convert the result to an sf object for easier handling
 idw_sf <- st_as_sf(idw_result)
 ```
-We now visualize the interpolated temperature surface using ggplot2. The geom_sf() function plots the interpolated data, and scale_fill_viridis_c() applies a color scale to the temperature values. This map provides a visual representation of the temperature distribution across BC.
+We now visualize the interpolated temperature surface using ggplot2. The geom_sf() function plots the interpolated data, and scale_fill_viridis_c() applies a colour scale to the temperature values. This map should provide a visual representation of the temperature distribution across BC.
 
 ``{r plot IDW, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
 # Visualize the IDW interpolation
@@ -493,10 +509,9 @@ ggsave("Clipped_IDW_Interpolation_Map.png", width = 10, height = 8, dpi = 300)
 ![IDW Map](Clipped_IDW_Interpolation_Map.png)
 Figure 3. *Clipped IDW Temperature Interpolation Map for British Columbia*
 
-The clipped IDW map illustrates temperature interpolations based on station data across British Columbia. Due to the close proximity of stations and their limited coverage, the IDW method struggles to generate reliable predictions for areas with sparse data. This results in unrealistic temperature variations, with high temperatures above 22.5°C occurring adjacent to much lower temperatures below 15°C. These inconsistencies are attributed to the insufficient distribution of stations and the limitations of the IDW algorithm in accurately predicting temperature values for regions without direct observations.
-
 ### Summary of IDW Results: 
-The IDW interpolation generated a temperature surface that highlights temperature variations across British Columbia. Clipping the results to the province's boundaries ensured that the map only included relevant data, excluding interpolated values outside the region. While the map provides a broad overview of predicted temperatures, the unrealistic temperature contrasts observed between nearby areas indicate the method's limitations, especially in regions with sparse station data. This generalization may lead to misleading interpretations and could affect comparisons with other spatial interpolation methods, such as Kriging, in future analyses.
+The map displays a spatially continuous temperature surface for British Columbia generated using IDW interpolation. Temperature predictions range from below 15°C to above 22.5°C, with notable instances of abrupt transitions between high and low values. These variations are particularly evident near isolated climate stations and along the boundaries of areas with sparse data coverage. The interpolation effectively highlights localized temperature trends while revealing abrupt changes that disrupt smooth transitions in certain regions.
+
 
 ## Kriging
 Kriging is a geostatistical interpolation method that generates predictions for unmeasured locations based on spatial autocorrelation. It incorporates both distance and the degree of variation between points, making it a robust method for analyzing climate data. In this section, we will:
