@@ -984,7 +984,7 @@ OLS regression minimizes the squared differences between observed and predicted 
 #### Data Preparation
 To start the OLS Regression, load the dataset that combines spatial and non-spatial attributes, ensuring it's properly formatted with a coordinate reference system (CRS). Then, fit a linear regression model to examine the relationship between temperature and fire occurrence.
 
-\newpage
+
 ```{r OLS regression, echo=FALSE, message=FALSE, warning=FALSE, results = "hide"}
 # Read the shapefile
 final_data_sf <- st_read("final_data.shp")
@@ -1043,7 +1043,7 @@ In this analysis, we will use Moran's I to evaluate the spatial dependence of re
 ```{r Morans I1, echo=FALSE, message=FALSE, warning=FALSE, results = "hide"}
 
 # Spatial Autocorrelation of Residuals using Moran's I
-# Read in the spatial data (assuming you have your 'final_data.shp')
+# Read in the spatial data
 final_data_sf <- st_read("final_data.shp")
 st_crs(final_data_sf)
 
@@ -1097,7 +1097,7 @@ The summary table presents the key results from the Moran's I test, including th
 The following code generates a map visualizing the Queen’s weight scheme for the residuals and saves it as a PNG file.
 ```{r Morans I3, echo=FALSE, message=FALSE, warning=FALSE, results = "hide"}
 # Optional: Create a map of the residuals with spatial weights (Queen's)
-# Convert neighbors to lines for visualization
+# Convert neighbours to lines for visualization
 residual_net <- nb2lines(residual_nb, coords = st_geometry(st_centroid(final_data_noNA)))
 st_crs(residual_net) <- st_crs(final_data_noNA)
 
@@ -1186,6 +1186,12 @@ The fixed bandwidth GWR model coefficients and their spatial distribution are vi
 dependent_var <- final_data_sp@data$fires
 independent_vars <- final_data_sp@data$temprtr
 
+# Check if both variables are numeric
+if (!is.numeric(dependent_var) || !is.numeric(independent_vars)) {
+  stop("Dependent and independent variables must be numeric.")
+}
+
+
 # Fixed bandwidth GWR
 fixed_bandwidth <- 200000  # Bandwidth in meters (200 km)
 gwr_model_fixed <- gwr(dependent_var ~ independent_vars, 
@@ -1193,10 +1199,14 @@ gwr_model_fixed <- gwr(dependent_var ~ independent_vars,
                        bandwidth = fixed_bandwidth, 
                        se.fit = TRUE)
 
-# Validate model
+# Validate that the model ran successfully
 if (is.null(gwr_model_fixed) || is.null(gwr_model_fixed$SDF)) {
   stop("The GWR model with fixed bandwidth did not run successfully.")
 }
+
+# Print GWR summary
+print(summary(gwr_model_fixed))
+
 
 # Extract coefficients
 gwr_results_fixed <- as.data.frame(gwr_model_fixed$SDF)
@@ -1208,16 +1218,23 @@ gwr_results_fixed <- cbind(gwr_results_fixed, coordinates_fixed)
 # Convert to sf for visualization
 gwr_output_sf_fixed <- st_as_sf(gwr_results_fixed, coords = c("X", "Y"), crs = st_crs(final_data_sf))
 
-# Plot results
+
+head(gwr_results_fixed)
+colnames(gwr_results_fixed)
+summary(gwr_model_fixed)
+
+
+
+# Plotting GWR coefficients with the fixed bandwidth
 ggplot(data = gwr_output_sf_fixed) +
-  geom_sf(aes(colour = localR2)) +
-  scale_colour_viridis_c(option = "C") +
+  geom_sf(aes(colour = localR2))+ #, color = NA) +
+  scale_colour_viridis_c(option = "C") + #here if i change it to the og scale_fill_viridis_c itll be blue
   labs(title = "GWR Coefficients with Fixed Bandwidth of 200 km",
-       colour = "localR2") +
+       fill = "localR2") +
   theme_minimal()
 
-# Save the plot
-ggsave("gwr_fixed_bandwidth.png", width = 10, height = 8, dpi = 300)
+# Optional: Save the plot
+ggsave("gwr_coefficients_fixed_bandwidth.png", width = 10, height = 8, dpi = 300)
 ```
 !GWRfixed200](gwr_fixed_bandwidth.png)
 Figure 13. Spatial distribution of the local R² values from the fixed 200km bandwidth GWR model.
@@ -1230,29 +1247,70 @@ This outcome highlights the limitations of using a fixed bandwidth approach in t
 ### GWR with Optimal Bandwidth
 To enhance the accuracy of Geographically Weighted Regression (GWR), the gwr.sel function should be used to identify the optimal bandwidth. This approach dynamically adjusts the spatial scale to better capture local variations in the relationship between the dependent and independent variables.
 
-\newpage
-```{r GWR Optimal Bandwidth, echo=FALSE, message=FALSE, warning=FALSE, results = "hide"}
-# Select optimal bandwidth
-optimal_bandwidth <- gwr.sel(dependent_var ~ independent_vars, data = final_data_sp)
-print(paste("Optimal Bandwidth selected: ", optimal_bandwidth))
 
-# Perform GWR with optimal bandwidth
-gwr_model_optimal <- gwr(dependent_var ~ independent_vars, 
-                         data = final_data_sp, 
-                         bandwidth = optimal_bandwidth, 
+```{r GWR Optimal Bandwidth, echo=FALSE, message=FALSE, warning=FALSE, results = "hide"}
+# SECOND GWR WITH OPTIMAL bandwidth: ------ #
+print(head(final_data_sf))
+print(colnames(final_data_sf))
+
+# Convert the sf object to Spatial object
+final_data_sp <- as_Spatial(final_data_sf)
+
+# Create neighborhood structure
+neighbors <- poly2nb(final_data_sp, queen = TRUE)
+
+# Check neighbors for any issues
+print(summary(neighbors))
+
+# Check for any empty neighbors
+if (any(sapply(neighbors, length) == 0)) {
+  warning("Some polygons have no neighbors. This may cause issues for GWR.")
+}
+
+# Prepare the dependent and independent variables
+dependent_var <- final_data_sp@data$fires
+independent_vars <- final_data_sp@data$temprtr
+
+# Check if both variables are numeric
+if (!is.numeric(dependent_var) || !is.numeric(independent_vars)) {
+  stop("Dependent and independent variables must be numeric.")
+}
+
+# Use gwr.sel to automatically select the optimal bandwidth
+optimal_bandwidth <- gwr.sel(dependent_var ~ independent_vars, data = final_data_sp)
+print(paste("Optimal Bandwidth selected: ", optimal_bandwidth))  # Output the selected bandwidth
+
+# Run GWR with the optimal bandwidth selected by gwr.sel
+gwr_model_optimal <- gwr(dependent_var ~ independent_vars,
+                         data = final_data_sp,
+                         bandwidth = optimal_bandwidth,
                          se.fit = TRUE)
 
-# Extract coefficients
+# Validate that the model ran successfully
+if (is.null(gwr_model_optimal)) {
+  stop("The GWR model did not return any results.")
+}
+
+if (is.null(gwr_model_optimal$SDF)) {
+  stop("The GWR model SDF is NULL, indicating it might not have calculated properly.")
+}
+
+# Print GWR summary
+print(summary(gwr_model_optimal))
+
+# Extract coefficients and create a dataframe for visualization
 gwr_results_optimal <- as.data.frame(gwr_model_optimal$SDF)
 
-# Extract centroids for visualization
-coordinates_optimal <- st_coordinates(st_centroid(final_data_sf))
+# Extract coordinates from the original spatial data
+coordinates_optimal <- st_coordinates(st_centroid(final_data_sf))  # Get coordinates from the original data
+
+# Combine the GWR results with the coordinates
 gwr_results_optimal <- cbind(gwr_results_optimal, coordinates_optimal)
 
-# Convert to sf object for visualization
+# Convert to an sf object for visualization
 gwr_output_sf_optimal <- st_as_sf(gwr_results_optimal, coords = c("X", "Y"), crs = st_crs(final_data_sf))
 
-# Plot results
+# Plotting GWR coefficients with the optimal bandwidth
 ggplot(data = gwr_output_sf_optimal) +
   geom_sf(aes(colour = localR2)) +
   scale_colour_viridis_c(option = "C") +
@@ -1260,8 +1318,9 @@ ggplot(data = gwr_output_sf_optimal) +
        colour = "localR2") +
   theme_minimal()
 
-# Save the plot
-ggsave("gwr_optimal_bandwidth.png", width = 10, height = 8, dpi = 300)
+# Optional: Save the plot
+ggsave("gwr_coefficients_optimal_bandwidth.png", width = 10, height = 8, dpi = 300)
+
 
 ```
 !GWRfixed200](gwr_optimal_bandwidth.png)
