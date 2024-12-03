@@ -4,7 +4,7 @@ Author: Anna Bartnik
 
 # 1. Introduction
 ### Background
-Wildfires have become an increasingly prevalent issue in British Columbia (BC), with the province experiencing an uptick in frequency and intensity in recent years. Much of this rise is linked to climate change, with factors like higher temperatures, drought, and altered precipitation patterns exacerbating wildfire risks. In 2023, BC recorded its largest wildfire season yet, both in terms of the number of fires and the total area burned. With climate change continuing to affect the environment, understanding how climate variables like temperature influence wildfire occurrence and intensity is critical for improving wildfire management strategies.
+Wildfires have become an increasingly prevalent issue in British Columbia (BC), with the province experiencing an uptick in frequency and intensity in recent years. Much of this rise is linked to climate change, with factors like higher temperatures, drought, and altered precipitation patterns exacerbating wildfire risks. The 2023 wildfire season in British Columbia was marked by unprecedented levels of extreme fire behaviour, highlighting the increasing trend of larger and more destructive wildfires in recent years (Daniels et al., 2024). With climate change continuing to affect the environment, understanding how climate variables like temperature influence wildfire occurrence and intensity is critical for improving wildfire management strategies.
 
 This tutorial will guide you through a process of spatial analysis using real wildfire event data from the 2023 wildfire season. By using RStudio to explore the relationship between temperature, location, and wildfire events in British Columbia for the year 2023 this tutorial demonstrates how to apply spatial analysis methods to examine patterns and correlations in both climate and wildfire data across the province. Temperature is a key variable, as higher temperatures increase the likelihood of fire ignition and promote faster fire spread. However, analyzing the relationship between wildfire events and climate variables is challenging, particularly when the climate data being used is poorly distributed. This is exactly the scenario we'll work through in this tutorial—demonstrating how poorly distributed data can distort the results, no matter how sophisticated the analysis methods are.
 
@@ -16,6 +16,7 @@ In this tutorial, we will explore the implications of this poor data distributio
 ### Why Data Quality Matters
 In today’s age of freely accessible data, it’s tempting to use whatever information is available online. However, as we’ll see throughout this tutorial, choosing the right data is just as important as the methods used to analyze it. While the availability of large datasets can spur innovation, it is crucial to recognize that data with poor distribution or lacking in variety can lead to skewed or inaccurate results. Research has shown that while large datasets can offer new opportunities for insights, the quality and spatial distribution of the data are just as important, as poorly distributed data can obscure meaningful relationships and distort conclusions (Raykov et al., 2016). No matter how much statistical power we apply, if the data doesn’t reflect the true diversity of environmental conditions across the region, the results will be incomplete or misleading.
 
+Haining (2003) emphasizes that data quality problems, such as poor spatial distribution, can significantly influence the reliability of spatial analysis outcomes. In particular, when data points are clustered in a small area, the results of interpolation methods, like Inverse Distance Weighting (IDW) or Kriging, may not accurately reflect broader spatial trends. This is because these methods rely on the assumption that spatial data points are representative of the entire study area. If data is concentrated in one region, it can lead to biased estimates and erroneous conclusions about spatial patterns.
 Our dataset is a prime example of how one small, poorly distributed sample can lead to an inaccurate understanding of a large-scale phenomenon. In contrast, gathering data from a range of sources—particularly data points that cover a larger area—could significantly improve the reliability of spatial analyses.
 
 ## Research Question:
@@ -1412,10 +1413,18 @@ What you should have learned from this tutorial is that the accuracy of your mod
 Going forward, ensure that you gather data from multiple reliable sources, check for good spatial distribution, and account for potential biases before running any spatial models. With high-quality data, these methods will allow you to draw stronger and more accurate conclusions from your analyses.
 
 # Refrences
-BC Hydro. (2023). BC Climate Station Data: Daily Maximum Temperature (January 1, 2023 – December 31, 2023) [Data set]. Pacific Climate Impacts Consortium. Retrieved from https://services.pacificclimate.org/met-data-portal-pcds/app/
+Here is your updated references list in alphabetical order:
+
+**References**
 
 BC Wildfire Service. (2023). Wildfire point data across British Columbia for 2023 [Data set]. BC Data Catalogue. Retrieved from https://www.for.gov.bc.ca/ftp/HPR/external/!publish/Maps_and_Data/GoogleEarth/WMB_Fires/
 
+Daniels, L. D., Dickson-Hoyle, S., Baron, J. N., Copes-Gerbitz, K., Flannigan, M. D., Castellanos Acuna, D., Hoffman, K. M., Bourbonnais, M., Wilkinson, S. L., Roeser, D., Harvey, J. E., Laflamme, J., Tiribelli, F., Whitehead, J., Leverkus, S. E. R., & Gray, R. W. (2024). The 2023 wildfires in British Columbia, Canada: Impacts, drivers, and transformations to coexist with wildfire. *Canadian Journal of Forest Research*. https://doi.org/10.1139/cjfr-2024-0092
+
 Government of British Columbia. (n.d.). British Columbia shapefile: Administrative boundaries [Shapefile]. BC Data Catalogue. Retrieved from https://www2.gov.bc.ca/gov/content/data/geographic-data-services/land-use/administrative-boundaries
 
-Raykov, Y. P., Boukouvalas, A., Baig, F., & Little, M. A. (2016). What to do when K-means clustering fails: A simple yet principled alternative algorithm. PLOS ONE, 11(9), e0162259. https://doi.org/10.1371/journal.pone.0162259
+Haining, R. (2003). *Spatial data analysis: Theory and practice*. Cambridge University Press.
+
+Pacific Climate Impacts Consortium. (2023). BC Climate Station Data: Daily Maximum Temperature for BCH Stations Across BC (January 1, 2023 – December 31, 2023) [Data set]. Retrieved from https://services.pacificclimate.org/met-data-portal-pcds/app/
+
+Raykov, Y. P., Boukouvalas, A., Baig, F., & Little, M. A. (2016). What to do when K-means clustering fails: A simple yet principled alternative algorithm. *PLOS ONE, 11*(9), e0162259. https://doi.org/10.1371/journal.pone.0162259
