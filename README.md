@@ -797,11 +797,19 @@ Figure 8. Wildfire Event Density and Temperature Map. The map illustrates the sp
 The wildfire density map reveals a clear clustering of wildfire events in British Columbia, with the most significant concentrations occurring in the southeastern region and a diagonal band stretching northwest to the mid-coast. These areas correspond to regions with higher event densities, ranging from 40 to 80 wildfires per raster cell. Additional hotspots are detected in the northeastern part of the province and on Vancouver Island. The rest of BC shows sparse or no wildfire activity, with zero density in areas such as the northern interior and along the western coastal boundary.
 
 
-## Performing Ordinary Least Squares (OLS) Regression
-Ordinary Least Squares (OLS) regression was applied to analyze the relationship between temperature and the frequency of events (fires). The analysis includes model fitting, residual calculation, and spatial visualization to assess model performance.
+# Performing Ordinary Least Squares (OLS) Regression
+Ordinary Least Squares (OLS) regression is a foundational statistical technique used to explore relationships between variables. In spatial analysis, it helps uncover patterns and trends in data distributed across geographic areas. This tutorial demonstrates how to use OLS regression to examine the relationship between temperature (independent variable) and the frequency of fires (dependent variable), focusing on how temperature influences wildfire spatial variability.
 
+### Why OLS Regression is Important
+OLS regression minimizes the squared differences between observed and predicted values, producing a line of best fit that reveals underlying trends. This model is essential for:
+
+* Assessing Relationships: Understanding how much a predictor variable (like temperature) influences the outcome (like fires).
+* Model Validation: Residuals (differences between observed and predicted values) can indicate whether the model captures all variability or if other factors play a role.
+* Spatial Insights: Mapping residuals highlights areas where the model performs well or fails, identifying spatial heterogeneity.
+  
 #### Data Preparation
-The spatial data containing temperature and fire information was read into R. Residuals from the OLS model were calculated and added back to the spatial data for further analysis.
+To start the OLS Regression, load the dataset that combines spatial and non-spatial attributes, ensuring it's properly formatted with a coordinate reference system (CRS). Then, fit a linear regression model to examine the relationship between temperature and fire occurrence.
+
 \newpage
 ```{r OLS regression, echo=FALSE, message=FALSE, warning=FALSE, results = "hide"}
 # Read the shapefile
@@ -811,7 +819,15 @@ st_crs(final_data_sf)
 # Fit the OLS regression model on the entire spatial data
 # Use "temprtr" instead of "temperature"
 ols_model <- lm(fires ~ temprtr, data = final_data_sf)
+```
+OLS regression outputs:
 
+* Slope: The slope of the regression model quantifies how fire frequency changes with temperature. A positive slope indicates that higher temperatures correspond to increased fire occurrences, while a negative slope would suggest the opposite.
+* R-squared: This value represents the proportion of variance in fire frequency explained by temperature. A higher R-squared indicates a stronger explanatory power of the model.
+* Residuals: Residuals capture the unexplained variation, providing insights into areas where additional factors may influence fire occurrences.
+
+Residuals were calculated and added to the spatial dataset to visualize the model's performance across the study area.
+```{r OLS regression 2, echo=FALSE, message=FALSE, warning=FALSE, results = "hide"}
 # Add residuals to the original spatial data frame
 final_data_sf$residuals <- resid(ols_model)
 
@@ -833,17 +849,29 @@ ggplot(data = final_data_sf) +
 # Optional: Save the plot if desired
 ggsave("residuals_map.png", width = 10, height = 8, dpi = 300)
 ```
+![OLS Residual Map](residuals_map.png)
+Figure 9. Map of residuals from OLS regression, visualizing the differences between observed fire occurrences and those predicted by temperature. This map highlights areas where the model performs well (low residuals) and where discrepancies exist (high residuals). While intermediate in the analysis pipeline, this step provides critical insights into spatial heterogeneity, paving the way for further refinement or localized analysis.
 
 
+
+# ! potential for morans I here
 
 ## Geographically Weighted Regression (GWR) Analysis
-GWR was applied to explore the spatial variability in the relationship between temperature (`temprtr`) and the number of fires. Two versions of GWR were implemented: one using a fixed bandwidth of 200 km and another using an optimal bandwidth determined by Ben's code.
-o analyze the spatial relationship between temperature (`temprtr`) and the number of fires, two GWR models were created:  
-1. **Fixed Bandwidth Model:** A consistent spatial influence (200 km bandwidth).  
-2. **Optimal Bandwidth Model:** The bandwidth automatically determined using `gwr.sel`.
+Geographically Weighted Regression (GWR) is a spatial analysis technique that models relationships between variables while accounting for their spatial variability. Unlike Ordinary Least Squares (OLS), which assumes a global relationship, GWR captures localized relationships by performing regressions at each data point, weighted by spatial proximity.
+
+In this tutorial, we analyze the relationship between temperature (temprtr) and the number of fires, using two GWR approaches:
+
+* Fixed Bandwidth: A constant spatial influence of 200 km across all locations.
+* Optimal Bandwidth: Adaptive bandwidth determined using the gwr.sel function to account for local variations.
+
+#### Why Use GWR?
+GWR is particularly useful when spatial heterogeneity exists in data. It helps to:
+* Identify areas where relationships vary significantly.
+* Highlight spatial clusters or outliers in the data.
+* Improve model accuracy by incorporating localized effects.
 
 ### Data Preparation
-Spatial data was read and prepared for GWR by creating neighborhood structures, converting the data to a suitable spatial format, and ensuring numeric variables for analysis.
+Before running GWR, we prepare the dataset by ensuring it is spatially structured and free of missing data.
 ```{r data-preparation, echo=FALSE, message=FALSE, warning=FALSE, results = "hide"}
 # Read the shapefile (with residuals included)
 final_data_sf <- st_read("final_data.shp")
@@ -867,8 +895,8 @@ if (any(sapply(neighbors, length) == 0)) {
 
 ### GWR with Fixed Bandwidth
 A fixed bandwidth of 200 km was used to perform GWR. This method applies the same spatial influence across all locations.
+Using a fixed bandwidth of 200 km ensures consistent spatial influence in the model.
 
-Model Results
 The fixed bandwidth GWR model coefficients and their spatial distribution are visualized below.
 \newpage
 ```{r GWR fixed Bandwidth, echo=FALSE, message=FALSE, warning=FALSE, results = "hide"}
@@ -909,10 +937,16 @@ ggplot(data = gwr_output_sf_fixed) +
 # Save the plot
 ggsave("gwr_fixed_bandwidth.png", width = 10, height = 8, dpi = 300)
 ```
+!GWRfixed200](gwr_fixed_bandwidth.png)
+Figure 10. Spatial distribution of the local R² values from the fixed 200km bandwidth GWR model.
 
+### Summary of GWR fixed bandwidth results
+The results indicate that the fixed bandwidth model does not effectively capture the spatial variability in the relationship between temperature and the number of fires. Most of the map shows local R² values ranging from 0 to 0.2, suggesting a weak explanatory power of the model in these areas. Additionally, the top-left corner exhibits negative local R² values as low as -0.4, which is unusual and indicates poor model performance.
+
+This outcome highlights the limitations of using a fixed bandwidth approach in this context, where spatial relationships may vary significantly across the study area. The model's inability to adapt to local variations suggests the need for an alternative method, such as an optimal bandwidth approach, to better capture the spatial heterogeneity.
 
 ### GWR with Optimal Bandwidth
-Using gwr.sel, the optimal bandwidth was determined and used for GWR analysis.
+To enhance the accuracy of Geographically Weighted Regression (GWR), the gwr.sel function should be used to identify the optimal bandwidth. This approach dynamically adjusts the spatial scale to better capture local variations in the relationship between the dependent and independent variables.
 
 \newpage
 ```{r GWR Optimal Bandwidth, echo=FALSE, message=FALSE, warning=FALSE, results = "hide"}
@@ -948,11 +982,16 @@ ggplot(data = gwr_output_sf_optimal) +
 ggsave("gwr_optimal_bandwidth.png", width = 10, height = 8, dpi = 300)
 
 ```
+!GWRfixed200](gwr_optimal_bandwidth.png)
+Figure 11. Spatial distribution of the local R² values from the optimal bandwidth GWR model. The map reveals greater variability compared to the fixed bandwidth model. Two hotspots with local R² values around 0.2 are located in the northern sections along the west coast, while the rest of the province fluctuates between 0 and 0.1. Negative local R² values are minimal, but the generally low values suggest limited explanatory power in the model.
 
+#### Summary of Results of Optimal GWR Model
+The use of an optimal bandwidth allows the model to adapt to spatial heterogeneity more effectively, resulting in a map that better reflects local variations in the relationship between temperature and the number of fires. Unlike the fixed bandwidth model, this approach captures subtle spatial differences, as evidenced by two distinct hotspots of higher local R² values (approximately 0.2) in the northern sections along the west coast. However, most of the province exhibits local R² values between 0 and 0.1, with very few negative values.
 
+The consistently low local R² values across the region indicate that the model explains only a small proportion of the variability in the dependent variable (number of fires) using the independent variable (temperature). This suggests that additional factors not included in the model likely play a significant role in influencing the spatial distribution of fires. While the optimal bandwidth improves the analysis by capturing variability more accurately, the limited explanatory power highlights the need for further investigation into other potential drivers of fire occurrence.
 
 # 6. Discussion
 
 # 7. Room For Improvement
 
-# 8. conclusion
+# 8. Conclusion
