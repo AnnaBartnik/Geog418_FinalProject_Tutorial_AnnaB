@@ -303,7 +303,7 @@ write.csv(merged_data, file = "ClimateData.csv", row.names = FALSE)
 ```
 
 
-## Descriptive statistics of wildfire data in 2023
+#### Descriptive statistics of wildfire data in 2023
 The descriptive statistics section allows us to explore the general characteristics of wildfire sizes in 2024, both for the full year and for just the summer months (June to August). These statistics include measures of central tendency (mean, median, and mode), dispersion (standard deviation, coefficient of variation), distribution (skewness and kurtosis), and normality tests.
 ```{r MWildfire descript stats, echo = FALSE, message = FALSE}
 # ----- DESCRIPTIVE STATISTICS for Wildfire in 2023 ----- #
@@ -508,10 +508,10 @@ ggsave(
 *Figure 2: Locations of wildfire incidents in British Columbia (2023).* This map illustrates the locations of wildfire incidents in British Columbia (2023).
 
 # 4. Methods and Results
-## Spatial Interpolation of Climate Data:
+### Spatial Interpolation of Climate Data:
 Spatial interpolation is a powerful tool in geospatial analysis, allowing us to estimate values at unsampled locations based on measurements taken at known points.
 
-## IDW Interpolation
+### IDW Interpolation
 In this section, we will use the Inverse Distance Weighting (IDW) method to interpolate temperature data across British Columbia (BC) and visualize the results. IDW is a spatial interpolation technique where values at unsampled locations are estimated based on a weighted average of nearby sampled points. IDW assumes that values at nearby locations are more similar than those farther apart, weighting observations inversely proportional to their distance from the target location. The influence of each point diminishes with distance from the target location, and This method is particularly well-suited for climate data, as environmental variables like temperature often exhibit spatial autocorrelation.
 
 The IDW approach calculates the estimated value 
