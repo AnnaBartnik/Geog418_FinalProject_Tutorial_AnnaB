@@ -127,7 +127,7 @@ if (!file.exists(csv_file_name)) {
 
 By creating this empty file, we ensure that subsequent steps append the cleaned and aggregated temperature data in a consistent format.
 
-### Next, running a For Loop Tool
+#### Next, running a For Loop Tool
 The raw temperature data from weather stations often includes errors, missing values, and outliers that can distort the analysis. Cleaning this data is critical to ensure that the temperature values used for aggregation and spatial analysis are realistic and meaningful.
 
 *metntion the months its being focused on too and why did i chose the - and + values?* 
@@ -254,7 +254,7 @@ if (interactive()) {
 
 ```
 
-### Last of Cleaning Climate Data, Merge Climate and Metadata
+#### Last of Cleaning Climate Data, Merge Climate and Metadata
 After aggregation, we will take the temperature data and merge it with station metadata, which contains location coordinates. This step is crucial for spatial analysis because it links each temperature value to a specific geographic location.
 
 ```{r Merge Climate and Metadata, echo = FALSE, message = FALSE}
@@ -286,7 +286,7 @@ British Columbia (BC), Canada’s westernmost province, is characterized by its 
 
 Wildfires are a significant concern in BC due to their increasing frequency and intensity, exacerbated by climate change. The province regularly faces challenges in managing wildfire risks, particularly in regions with dry climates and dense vegetation. This tutorial focuses on the spatial distribution of wildfire incidents and climate data within BC to explore the challenges posed by uneven data distribution and clustering in spatial analysis.
 
-## Creating the Climate Station Map
+### Creating the Climate Station Map
 This section demonstrates how to convert the climate data into a spatial object (shapefile) for visualization.
 
 ```{r starting to make maps, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
@@ -339,11 +339,11 @@ ggsave(
 )
 
 ```
-# Climate Station Map
+## Climate Station Map
 ![Climate Station Map](climate_station_map.png)
 *Figure 1: Spatial distribution of climate stations in British Columbia.* This map shows the spatial distribution of climate stations across British Columbia.
 
-## Creating the Wildfire Point Data Map
+### Creating the Wildfire Point Data Map
 Data Preparation and Shapefile Transformation
 This section explains how to read and transform the wildfire shapefile into the same CRS as the rest of the spatial data.
 \newpage
@@ -388,7 +388,7 @@ ggsave(
 )
 
 ```
-# Wildfire Point Data Map
+## Wildfire Point Data Map
 
 ![Wildfire Point Data Map](wildfire_points_map.png)
 *Figure 2: Locations of wildfire incidents in British Columbia (2023).* This map illustrates the locations of wildfire incidents in British Columbia (2023).
@@ -450,7 +450,7 @@ idw_sf <- st_as_sf(idw_result)
 We now visualize the interpolated temperature surface using ggplot2. The geom_sf() function plots the interpolated data, and scale_fill_viridis_c() applies a colour scale to the temperature values. This map should provide a visual representation of the temperature distribution across BC.
 
 ``{r plot IDW, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
-# Visualize the IDW interpolation
+### Visualize the IDW interpolation
 ggplot(data = idw_sf) +
   geom_sf(aes(fill = var1.pred), color = NA) +
   scale_fill_viridis_c(name = "Predicted Temperature (°C)") +
@@ -462,7 +462,7 @@ ggplot(data = idw_sf) +
   theme_minimal() +
   theme(legend.position = "right")
 
-# Save the result as a shapefile for further use
+##### Save the result as a shapefile for further use
 st_write(idw_sf, "IDW_Result.shp", driver = "ESRI Shapefile", delete_dsn = TRUE)
 
 ```
@@ -504,7 +504,7 @@ ggplot(data = idw_clipped) +
 # Save the clipped results as a map
 ggsave("Clipped_IDW_Interpolation_Map.png", width = 10, height = 8, dpi = 300)
 ```
-# Clipped IDW map
+## Clipped IDW map
 
 ![IDW Map](Clipped_IDW_Interpolation_Map.png)
 Figure 3. *Clipped IDW Temperature Interpolation Map for British Columbia*
@@ -797,7 +797,7 @@ Figure 8. Wildfire Event Density and Temperature Map. The map illustrates the sp
 The wildfire density map reveals a clear clustering of wildfire events in British Columbia, with the most significant concentrations occurring in the southeastern region and a diagonal band stretching northwest to the mid-coast. These areas correspond to regions with higher event densities, ranging from 40 to 80 wildfires per raster cell. Additional hotspots are detected in the northeastern part of the province and on Vancouver Island. The rest of BC shows sparse or no wildfire activity, with zero density in areas such as the northern interior and along the western coastal boundary.
 
 
-# Performing Ordinary Least Squares (OLS) Regression
+## Performing Ordinary Least Squares (OLS) Regression
 Ordinary Least Squares (OLS) regression is a foundational statistical technique used to explore relationships between variables. In spatial analysis, it helps uncover patterns and trends in data distributed across geographic areas. This tutorial demonstrates how to use OLS regression to examine the relationship between temperature (independent variable) and the frequency of fires (dependent variable), focusing on how temperature influences wildfire spatial variability.
 
 ### Why OLS Regression is Important
