@@ -1031,7 +1031,8 @@ ggplot(data = final_data_sf) +
 ggsave("residuals_map.png", width = 10, height = 8, dpi = 300)
 ```
 ![OLS Residual Map](residuals_map.png)
-*Figure 9. Map of residuals from OLS regression.* This map visualizes the differences between observed fire occurrences and those predicted by temperature. This map highlights areas where the model performs well (low residuals) and where discrepancies exist (high residuals). While intermediate in the analysis pipeline, this step provides critical insights into spatial heterogeneity, paving the way for further refinement or localized analysis.
+*Figure 9. Map of residuals from OLS regression.* 
+Figure 9 shows a map of the differences between the actual wildfire occurrences and the predictions made by temperature data using OLS regression. This map helps identify areas where the model is accurate (low residuals) and where it’s less accurate (high residuals). While this step comes before the main analysis, it’s important because it shows where patterns vary across space, helping refine the model or guide more focused analysis.
 
 
 
