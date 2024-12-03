@@ -1259,6 +1259,7 @@ ggplot(data = gwr_output_sf_fixed) +
 # Optional: Save the plot
 ggsave("gwr_coefficients_fixed_bandwidth.png", width = 10, height = 8, dpi = 300)
 ```
+
 ![GWRfixed200](gwr_fixed_bandwidth.png)
 *Figure 13. Spatial distribution of the local R² values from the fixed 200km bandwidth GWR model.*
 
@@ -1346,7 +1347,7 @@ ggsave("gwr_coefficients_optimal_bandwidth.png", width = 10, height = 8, dpi = 3
 
 
 ```
-!GWRfixed200](gwr_optimal_bandwidth.png)
+![GWRfixed200](gwr_optimal_bandwidth.png)
 *Figure 14. Spatial distribution of the local R² values from the optimal bandwidth GWR model.* The map reveals greater variability compared to the fixed bandwidth model. Two hotspots with local R² values around 0.2 are located in the northern sections along the west coast, while the rest of the province fluctuates between 0 and 0.1. Negative local R² values are minimal, but the generally low values suggest limited explanatory power in the model.
 
 ### Summary of Results of Optimal GWR Model
