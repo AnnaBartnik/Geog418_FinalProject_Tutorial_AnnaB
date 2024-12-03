@@ -1181,7 +1181,69 @@ The use of an optimal bandwidth allows the model to adapt to spatial heterogenei
 The consistently low local R² values across the region indicate that the model explains only a small proportion of the variability in the dependent variable (number of fires) using the independent variable (temperature). This suggests that additional factors not included in the model likely play a significant role in influencing the spatial distribution of fires. While the optimal bandwidth improves the analysis by capturing variability more accurately, the limited explanatory power highlights the need for further investigation into other potential drivers of fire occurrence.
 
 # 6. Discussion
+The analysis of wildfire events and temperature data in British Columbia highlights significant challenges, primarily stemming from the uneven distribution of climate station data across the province. The limited spatial coverage of temperature observations significantly impacted the performance of the interpolation methods, leading to poor model outcomes. The lack of representative data across the entire study area caused localized variations in temperature that were inaccurately captured, undermining the reliability of the results. As a result, the models, including IDW and Kriging, failed to produce meaningful or accurate predictions of temperature patterns. This issue reflects a broader problem in spatial modelling: when input data is poorly distributed, interpolation methods can amplify inaccuracies, leading to distorted temperature surfaces that do not reflect the true underlying climate conditions.
+
+Furthermore, Moran’s I test on residuals from the OLS regression confirmed that there was no significant spatial autocorrelation in the residuals, suggesting that the spatial patterns of temperature and wildfire events are almost random. This lack of spatial relationship further highlights the limitations of the modelling approach, as it becomes apparent that there is no clear, consistent relationship between temperature and wildfire event density across the province. This is compounded by the limitations of the Geographically Weighted Regression (GWR) methods, both with fixed and optimal bandwidths, which struggle to capture local spatial variability effectively due to the poor quality of the input data.
+
+### Inverse Distance Weighting (IDW)
+IDW was the first method used for interpolating temperature data, but its results were severely impacted by the sparse and unevenly distributed climate station data. The IDW algorithm's sensitivity to the power parameter (PPP) further exacerbated the inaccuracies, as it amplified localized temperature variations and distorted the true temperature distribution. With the power parameter poorly calibrated due to insufficient data, the IDW model produced a temperature surface that did not reflect the true climate conditions, particularly in areas where temperature observations were sparse. This led to exaggerated temperature differences and misrepresented the actual spatial distribution of temperature across British Columbia.
+
+### Kriging
+Kriging was another interpolation method used in the analysis. Although we ensured the coordinate reference system (CRS) was properly matched and experimented with different grid sizes, the model ultimately did not produce an output due to the inadequacies in the spatial data. The insufficient and uneven distribution of temperature data meant that Kriging, which relies on the spatial autocorrelation of data points to make predictions, could not generate reliable results. The lack of enough well-distributed data points meant that Kriging could not accurately model temperature patterns, further compounding the limitations of the analysis.
+
+### Wildfire Event Density and Temperature Map
+Figure 8 illustrates the spatial distribution of wildfire event density overlaid with interpolated temperature data. The map shows that wildfire events are most concentrated in the southeast and along a diagonal band extending to the mid-coast of British Columbia. These areas are marked by warmer tones, suggesting a higher density of wildfire events. However, the map also reveals that the relationship between temperature and wildfire event density is not straightforward. The poor quality of the temperature data leads to inconsistencies in the interpretation of this relationship, as temperature patterns in the north and on Vancouver Island do not correlate well with the wildfire density patterns. This highlights the importance of having well-distributed and reliable data for meaningful analysis.
+
+### Moran's I Test
+The Moran's I test on the residuals from the OLS regression returned a value of -0.0029, indicating very weak negative spatial autocorrelation. The expected Moran's I was -0.0021, which was very close to the observed value, suggesting that the spatial pattern of residuals is nearly random. The z-score of -0.0295, which is close to zero, reinforces this interpretation, indicating that there is no significant deviation from randomness. This lack of significant spatial autocorrelation implies that the residuals do not exhibit any clear spatial pattern, further suggesting that the relationship between temperature and wildfire events is weak and poorly modeled due to the data limitations.
+
+### Geographically Weighted Regression (GWR) with Fixed Bandwidth
+To explore spatial heterogeneity in the relationship between temperature and wildfire events, GWR with a fixed bandwidth of 200 km was applied. This approach assumes that the spatial influence of each observation is constant across the entire study area. However, the fixed bandwidth model was unable to capture significant local variations in the temperature-wildfire relationship. Most of the map showed local R² values between 0 and 0.2, indicating weak explanatory power. Additionally, some regions, particularly in the top-left corner of the map, exhibited negative local R² values as low as -0.4, signaling poor model performance in these areas. This suggests that a fixed bandwidth approach is not well-suited for capturing the complex spatial dynamics in the data, where local variations in temperature and wildfire events require a more adaptable modeling method.
+
+### Geographically Weighted Regression (GWR) with Optimal Bandwidth
+To address the shortcomings of the fixed bandwidth approach, GWR with an optimal bandwidth was tested. This method dynamically adjusts the bandwidth to better capture local variations in the relationship between the dependent and independent variables. The results of this approach, shown in Figure 14, revealed greater variability in local R² values compared to the fixed bandwidth model. Two hotspots with local R² values around 0.2 were observed in the northern sections along the west coast, while the rest of the province had values fluctuating between 0 and 0.1. Though negative local R² values were minimal, the generally low values still suggested limited explanatory power. This outcome indicates that, even with optimal bandwidth, the data quality issues related to sparse temperature observations hinder the effectiveness of the GWR model in capturing a meaningful relationship between temperature and wildfire events.
+
 
 # 7. Room For Improvement
+While this analysis gave us a good overview of wildfire events and temperature patterns across British Columbia, there are definitely areas where improvements could be made to get more reliable results. Here are a few key points to consider for improving the study.
+
+### Better Data Collection and Distribution
+
+A major issue in this analysis was the uneven distribution of climate station data. Because the data wasn’t spread out evenly across the province, the models didn’t do a great job predicting temperature patterns. In future studies, it would be helpful to gather data from more stations, especially in remote areas, so that the models have a fuller picture of the temperature variations across the whole region. More stations would help reduce bias and improve the accuracy of spatial predictions.
+
+### Adding More Data Sources
+
+In addition to ground-based climate station data, other data sources could improve the model. For instance, satellite temperature data or higher-resolution weather models could fill in gaps, especially in regions with few or no climate stations. Using extra environmental data like soil moisture or vegetation could also help explain why certain areas are more prone to wildfires, adding another layer of detail to the analysis.
+
+### Trying Different Interpolation Methods
+
+IDW and Kriging were the main methods used for predicting temperatures, but there are other interpolation techniques that could perform better in some areas. Methods like spline interpolation or machine learning-based approaches could provide more accurate predictions, especially where data is sparse. It could also be worth combining different interpolation methods to get a more reliable result overall.
+
+### Tuning the Models
+
+The Geographically Weighted Regression (GWR) models didn’t work as well as expected, likely due to the uneven data distribution. To improve this, testing a range of bandwidths and using cross-validation to find the best fit for different regions could help. Exploring other spatial models, like Spatial Lag or Spatial Error Models, might also be a good option to better account for spatial patterns and dependencies.
+
+### Looking at Longer Time Periods
+
+This analysis focused on just one point in time, which limits our ability to see longer-term trends. Expanding the study to cover multiple years or seasons would help us understand how temperature changes over time influence wildfire activity. It would also allow us to track shifts in temperature patterns and their relationship to wildfires, possibly revealing more about the impact of climate change.
+
+### Improving Spatial Autocorrelation Testing
+
+While the Moran’s I test showed weak spatial autocorrelation, it’s worth exploring other techniques to dig deeper into the spatial relationships between temperature and wildfire events. Using methods like Local Indicators of Spatial Association (LISA) or testing with other spatial autocorrelation measures (e.g., Geary’s C) might uncover more patterns that Moran’s I didn’t pick up on.
+
+### Sensitivity Testing
+
+Finally, it would be useful to test how sensitive the models are to changes in the data. A sensitivity analysis would let us see how model results change when we adjust things like data distribution or model parameters. This would help identify how robust the findings are and guide future research in choosing the best data and methods.
+
+Improving these aspects would help future studies produce more reliable results and give us a better understanding of how temperature and wildfire events are connected, ultimately leading to more effective strategies for managing wildfire risks in the province.
 
 # 8. Conclusion
+The goal of this tutorial was to demonstrate the process of cleaning data and running various statistical and spatial models to analyze spatial relationships. Throughout this tutorial, we explored several methods, including Inverse Distance Weighting (IDW), Kriging, Ordinary Least Squares (OLS) regression, Geographically Weighted Regression (GWR), and Moran's I to assess spatial autocorrelation.
+
+These techniques were applied to temperature data and wildfire events in British Columbia, allowing us to assess how temperature could influence wildfire activity across the province. However, this tutorial also highlighted a critical point: no matter how sophisticated the models are, if the data isn’t well-distributed or of good quality to begin with, the results won't be meaningful.
+
+What you should have learned from this tutorial is that the accuracy of your model largely depends on the quality of your data. Even with advanced models like IDW, Kriging, OLS, and GWR, or spatial analysis methods like Moran's I, if your data is sparse or poorly distributed across the study area, the conclusions you draw will be unreliable. We also saw how important it is to clean data, check for spatial biases, and understand the limitations of the models you are working with.
+
+Going forward, ensure that you gather data from multiple reliable sources, check for good spatial distribution, and account for potential biases before running any spatial models. With high-quality data, these methods will allow you to draw stronger and more accurate conclusions from your analyses.
+
+# Refrences
