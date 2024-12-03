@@ -36,17 +36,17 @@ This tutorial will walk you through these techniques, while also demonstrating t
 Before beginning the analysis, ensure that the necessary libraries for spatial data manipulation and visualization are installed and loaded. These libraries include:
 ```{r setup and loading libraries, include=FALSE}
 # Ensure installation of these packages before proceeding. 
-install.packages(tmap)
-install.packages(spdep)
-install.packages(raster)
-install.packages(sf)
-install.packages(lubridate)
-install.packages(dplyr)
-install.packages(gstat)
-install.packages(ggplot2)
-install.packages(maps)
-install.packages(viridis)
-install.packages(spgwr)
+install.packages("tmap")
+install.packages("spdep")
+install.packages("raster")
+install.packages("sf")
+install.packages("lubridate")
+install.packages("dplyr")
+install.packages("gstat")
+install.packages("ggplot2")
+install.packages("maps")
+install.packages("viridis")
+install.packages("spgwr")
 install.packages("gridExtra")
 install.packages("grid")
 
@@ -70,6 +70,8 @@ library(grid)
 # Set working directory
 To ensure the smooth functioning of code throughout the project, set the working directory to the folder where your data and outputs will be stored. Adjust the path based on your file system:
 ```{r setup working directory, include=FALSE}
+#CHANGE TO YOUR RESPECTIVE DIRECTORY:
+
 dir <- "C:/Users/aabar/Desktop/university/Year5/Geog418_LAB/Lab4" #Change the directory based on the location you save your files to
 setwd(dir)
 ```
@@ -134,7 +136,7 @@ By creating this empty file, we ensure that subsequent steps append the cleaned 
 #### Next, running a For Loop Tool
 The raw temperature data from weather stations often includes errors, missing values, and outliers that can distort the analysis. Cleaning this data is critical to ensure that the temperature values used for aggregation and spatial analysis are realistic and meaningful.
 
-*metntion the months its being focused on too and why did i chose the - and + values?* 
+*mentioned the months it's being focused on too and why did I chose the - and + values?* 
 Seasonal averages focus on specific periods of interest, such as the wildfire season (May to October). Aggregating data for this period helps in studying the relationship between climate conditions and wildfire patterns.
 
 
@@ -145,19 +147,28 @@ Here’s what we’ll do in this step:
 * Ensure consistency: Standardize the structure of the temperature data across all weather stations.
 ```{r Aggregate Temperature Data, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
 
-# List all CSV files in the BCH folder
-# The BCH folder contains data from the weather station network
-csv_files <- list.files(path = "C:/Users/aabar/Desktop/university/Year5/Geog418_LAB/Lab4/BCH", 
-                        pattern = "\\.csv$", 
-                        full.names = TRUE)
+# Create an empty data frame with specified columns
+empty_data <- data.frame(Native.ID = character(), TEMP = numeric(), 
+                         Longitude = numeric(), Latitude = numeric(), stringsAsFactors = FALSE)
 
-# Display the list of files to confirm (do this by removing the "#" on the next line:)
-#print(csv_files)
+csv_file_name <- "BC_AVG_TEMP.csv"
 
-# Loop through each CSV file and perform calculations for daily, monthly, and seasonal temperatures
+# Write the empty data frame to a CSV file
+write.csv(empty_data, file = csv_file_name, row.names = FALSE)
+
+
+#Run through all csv files in folder to calculate an aggregate measure of temperature
+# List all CSV files in the directory
+#First, list all CSV files in the directory to make sure you are in the right folder. The folder we are looking at here is called BCH as this is the weather station network from which the data was obtained in PCIC.
+#csv_files <- list.files(pattern = "\\.csv$", full.names = TRUE)
+#CHANGE TO YOUR RESPECTIVE DIRECTORY:
+csv_files <- list.files(path = "C:/Users/aabar/Desktop/university/Year5/Geog418_LAB/LAB4_SUBMISSION_Test/BCH", pattern = "\\.csv$", full.names = TRUE)
+
+
+#Next, loop through each CSV file and perform your calculations to calculate something about this variable. Here we calculate daily, montly, and season average temperatures. 
 for (file in csv_files) {
-  #--- Step 1: Cleaning Climate data ---#
-  # Read each CSV file
+
+  #Step 1: Cleaning Climate data#
   # Read the CSV file, skipping the first line (header = TRUE ensures column names are read correctly)
   hourly_data <- read.csv(file, skip = 1, header = TRUE)
   file_name <- file
@@ -178,36 +189,38 @@ for (file in csv_files) {
   hourly_data <- hourly_data %>%
     filter(MAX_TEMP <= 80 & MAX_TEMP >= -40)
   
-# Step 4: Calculate daily average temperature
-# Group data by date and calculate the mean MAX_TEMP for each day
-daily_avg_temp <- hourly_data %>%
-  group_by(date = as.Date(time)) %>%
-  summarize(daily_avg_temp = mean(MAX_TEMP, na.rm = TRUE))
+  # Step 4: Calculate daily average temperature
+  # Group data by date and calculate the mean MAX_TEMP for each day
+  daily_avg_temp <- hourly_data %>%
+    group_by(date = as.Date(time)) %>%
+    summarize(daily_avg_temp = mean(MAX_TEMP, na.rm = TRUE))
+  
+  # Display daily average temperatures (debugging/verification)
+  print(daily_avg_temp)
+  
+  # Step 5: Calculate monthly average temperature
+  # Group data by year and month, then calculate the monthly mean MAX_TEMP
+  monthly_avg_temp <- hourly_data %>%
+    group_by(year = year(time), month = month(time)) %>%
+    summarize(monthly_avg_temp = mean(MAX_TEMP, na.rm = TRUE)) %>%
+    ungroup() # Ensure data is not grouped for subsequent operations
+  
+  # Display monthly average temperatures (debugging/verification)
+  print(monthly_avg_temp)
+  
+  # Step 6: Calculate seasonal average temperature (May to October)
+  # First, filter data for the months from May to October (Fire Season)
+  average_temp_may_october <- hourly_data %>%
+    filter(month(time) >= 5 & month(time) <= 10) %>%
+    summarize(TEMP = mean(MAX_TEMP, na.rm = TRUE))  # Replace 'temperature' with your column name
+  
+  # Display the average temperature for May to October
+  print(average_temp_may_october)
 
-# Display daily average temperatures (debugging/verification)
-print(daily_avg_temp)
+# ----- That was part 1 of cleaning climate Data ----- #
 
-# Step 5: Calculate monthly average temperature
-# Group data by year and month, then calculate the monthly mean MAX_TEMP
-monthly_avg_temp <- hourly_data %>%
-  group_by(year = year(time), month = month(time)) %>%
-  summarize(monthly_avg_temp = mean(MAX_TEMP, na.rm = TRUE)) %>%
-  ungroup() # Ensure data is not grouped for subsequent operations
-
-# Display monthly average temperatures (debugging/verification)
-print(monthly_avg_temp)
-
-# Step 6: Calculate seasonal average temperature (May to October)
-# First, filter data for the months from May to October (Fire Season)
-average_temp_may_october <- hourly_data %>%
-  filter(month(time) >= 5 & month(time) <= 10) %>%
-  summarize(TEMP = mean(MAX_TEMP, na.rm = TRUE))  # Replace 'temperature' with your column name
-
-# Display the average temperature for May to October
-print(average_temp_may_october)
-
-# --- Part 2: Prepare climate data for merging ---
-
+# ----- Part 2: Prepare climate data for merging ----- #
+  
   # Extract the filename (station ID) from the file path
   file_name <- basename(file_name)                # Get the file name with extension
   file_name_no_ext <- sub("\\.[^.]*$", "", file_name)  # Remove the file extension
@@ -245,16 +258,17 @@ print(average_temp_may_october)
   print(head(data))
   
   # Display the updated data for verification (optional debugging)
-if (interactive()) {
-  cat("Updated Data:\n")
-  print(head(data))
-}
+  if (interactive()) {
+    cat("Updated Data:\n")
+    print(head(data))
+  }
   
   # Step 9: Save the updated data back to the CSV file
   output_file_path <- csv_file_name
   write.csv(data, file = output_file_path, row.names = FALSE)
 }
 
+################### Done with for loop tool
 
 ```
 
@@ -262,100 +276,104 @@ if (interactive()) {
 After aggregation, we will take the temperature data and merge it with station metadata, which contains location coordinates. This step is crucial for spatial analysis because it links each temperature value to a specific geographic location.
 
 ```{r Merge Climate and Metadata, echo = FALSE, message = FALSE}
-# Read metadata and climate data
-metadata <- read.csv("C:/Users/aabar/Desktop/university/Year5/Geog418_LAB/Lab4/station-metadata-by-history.csv")
-climate_data <- read.csv("BC_AVG_TEMP.csv")
+# Merge the climate data for each station with the location data found in the metadata file
+metadata <- read.csv("C:/Users/aabar/Desktop/university/Year5/Geog418_LAB/LAB4_SUBMISSION_Test/station-metadata-by-history.csv")
+climatedata <- read.csv("BC_AVG_TEMP.csv")
 
 # Merge datasets on station ID
-merged_data <- merge(metadata, climate_data, by = "Native.ID")
+merged_data <- merge(metadata, climatedata, by = "Native.ID")
 
-# Clean merged dataset
-merged_data <- merged_data %>%
-    filter(TEMP <= 100) %>%                                  # Filter out unrealistic temperature values
-  rename(Longitude = Longitude.x, Latitude = Latitude.x) %>% # Rename columns for clarity
-  select(-ends_with(".y")) %>%                               # Remove redundant columns (with .y suffix)
-  na.omit()                                                  # Remove rows with NA values
+# Remove the last two columns which are duplicate Latitude and Longitude
+merged_data <- merged_data[, -((ncol(merged_data)-1):ncol(merged_data))]
 
+# Change column names for Latitude and Longitude to remove the x
+colnames(merged_data)[colnames(merged_data) %in% c("Latitude.x", "Longitude.x")] <- c("Longitude", "Latitude")
+
+# Omit NA's
+merged_data <- na.omit(merged_data)
+
+# There are erroneous temperature values. Filter data to remove these
+merged_data <- merged_data[merged_data$TEMP <= 100, ]
 
 # Save cleaned data to CSV
 write.csv(merged_data, file = "ClimateData.csv", row.names = FALSE)
 
+#------------ End of cleaning climate data ---------#
+
 ```
+
+
 ### Descriptive statistics of wildfire data in 2023
+The descriptive statistics section allows us to explore the general characteristics of wildfire sizes in 2024, both for the full year and for just the summer months (June to August). These statistics include measures of central tendency (mean, median, and mode), dispersion (standard deviation, coefficient of variation), distribution (skewness and kurtosis), and normality tests.
 ```{r MWildfire descript stats, echo = FALSE, message = FALSE}
+# ----- DESCRIPTIVE STATISTICS for Wildfire in 2023 ----- #
 
-# Descriptive Statistics for Climate Data
-# Assuming your climate data is in a dataframe called df
+# Install and Load necessary libraries
+library(dplyr)
+library(ggplot2)
+library(e1071)
+library(spatstat)
+library(sf)
+library(gridExtra)
+library(grid)
+library(gtable)
 
-# Mean
-mean_temp <- mean(df$Temperature, na.rm = TRUE)
-# Mode 
-mode_temp <- as.numeric(names(sort(table(df$Temperature), decreasing = TRUE))[1])
-# Standard Deviation
-sd_temp <- sd(df$Temperature, na.rm = TRUE) 
-# Median
-med_temp <- median(df$Temperature, na.rm = TRUE)
-# Skewness
-skew_temp <- skewness(df$Temperature, na.rm = TRUE)[1]
-# Kurtosis
-kurt_temp <- kurtosis(df$Temperature, na.rm = TRUE)[1]
-# Coefficient of Variation
-cov_temp <- (sd_temp / mean_temp) * 100
-# Normal Distribution test
-norm_temp <- shapiro.test(df$Temperature)$p.value
+# ----- Wildfire Data -----
 
-# Data for Table 1
-data_for_table1 <- data.frame(
-  Sample = c("Temperature (°C)"),
-  Mean = round(mean_temp, 3),
-  SD = round(sd_temp, 3),
-  Median = round(med_temp, 3),
-  Mode = round(mode_temp, 3)
-)
+# Load the wildfire shapefile
+fire_shapefile <- "C:/Users/aabar/Desktop/university/Year5/Geog418_LAB/LAB4_SUBMISSION_Test/BC_Fire_Points_2023-point.shp"
+fire_points <- st_read(fire_shapefile)
 
-# Data for Table 2
-data_for_table2 <- data.frame(
-  Sample = c("Temperature (°C)"),
-  Skewness = round(skew_temp, 3),
-  Kurtosis = round(kurt_temp, 3),
-  CoV = round(cov_temp, 3),
-  Normality = round(norm_temp, 5)
-)
+# Transform CRS to EPSG 3005 (BC Albers)
+fire_points <- st_transform(fire_points, crs = 3005)
 
-# Create Table 1 with Caption
-table1 <- tableGrob(data_for_table1, rows = c(""), theme = ttheme_default(base_size = 12))
-t1Caption <- textGrob("Table 1: Descriptive Statistics for Climate Data (Temperature).",
-                      gp = gpar(fontsize = 12))
-padding <- unit(5, "mm")
+# Check the structure of the fire points data
+str(fire_points)
 
-table1 <- gtable_add_rows(table1, 
-                          heights = grobHeight(t1Caption) + padding, 
-                          pos = 0)
+# Summary statistics for the wildfire data (e.g., year, location, size)
+summary(fire_points)
 
-table1 <- gtable_add_grob(table1,
-                          t1Caption, t = 1, l = 2, r = ncol(data_for_table1) + 1)
+# Number of wildfire points
+num_fire_points <- nrow(fire_points)
+num_fire_points
 
-# Create Table 2 with Caption
-table2 <- tableGrob(data_for_table2, rows = c(""), theme = ttheme_default(base_size = 12))
-t2Caption <- textGrob("Table 2: Descriptive Statistics for Climate Data (Temperature).",
-                      gp = gpar(fontsize = 12))
+# Distribution of fire sizes
+fire_points$FIRE_SIZE_ <- as.numeric(fire_points$FIRE_SIZE_)
+summary(fire_points$FIRE_SIZE_)
 
-table2 <- gtable_add_rows(table2, 
-                          heights = grobHeight(t2Caption) + padding, 
-                          pos = 0)
+# Distribution plot for fire sizes
+hist(fire_points$FIRE_SIZE_, main = "Distribution of Wildfire Sizes", xlab = "Fire Size (hectares)")
 
-table2 <- gtable_add_grob(table2,
-                          t2Caption, t = 1, l = 2, r = ncol(data_for_table2) + 1)
+# Calculate basic statistics for fire sizes
+mean_fire_size <- mean(fire_points$FIRE_SIZE_, na.rm = TRUE)
+median_fire_size <- median(fire_points$FIRE_SIZE_, na.rm = TRUE)
+sd_fire_size <- sd(fire_points$FIRE_SIZE_, na.rm = TRUE)
+cv_fire_size <- sd_fire_size / mean_fire_size  # Coefficient of variation
 
-# Export Table 1 as PNG
-png("Output_Table1.png", width = 1000, height = 500, res = 150)  # Adjusted size and resolution
-grid.arrange(table1, newpage = TRUE)
-dev.off()
+# Output basic fire size statistics
+mean_fire_size
+median_fire_size
+sd_fire_size
+cv_fire_size
 
-# Export Table 2 as PNG
-png("Output_Table2.png", width = 1000, height = 500, res = 150)  # Adjusted size and resolution
-grid.arrange(table2, newpage = TRUE)
-dev.off()
+# Skewness and kurtosis for fire sizes
+fire_size_skewness <- skewness(fire_points$FIRE_SIZE_, na.rm = TRUE)
+fire_size_kurtosis <- kurtosis(fire_points$FIRE_SIZE_, na.rm = TRUE)
+
+fire_size_skewness
+fire_size_kurtosis
+
+# Spatial density: Kernel Density Estimate (KDE)
+# Convert sf object to ppp (point pattern object) for spatstat
+fire_points_ppp <- as.ppp(fire_points)
+
+# Compute Kernel Density Estimate (KDE)
+fire_kde <- density(fire_points_ppp)
+
+# Plot the KDE to visualize spatial density
+plot(fire_kde)
+
+# ----- END of WILDFIRE DESCRIPTIVE STATISTICS ----- #
 
 ```
 
@@ -397,28 +415,37 @@ bc_SHP_boundary <- st_transform(bc_SHP_boundary, crs = 3005)
 
 
 ```
+
 Next, we will plot the climate stations on the BC shp. boundary and save the map to our directory.
+
 ```{r Climate station map, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
 # Plot the climate station map
+climate_map <- ggplot() + 
+  geom_sf(data = bc_SHP_boundary, fill = "lightgrey", color = "black") +
+  geom_sf(data = climate_sf, aes(color = TEMP), size = 1.5) + 
+  scale_color_gradient(low = "blue", high = "red", name = "Temperature (°C)") +
+  theme_minimal() +
+  labs(
+    title = "Climate Station Data Points",
+    subtitle = "Overlayed on BC Boundary",
+    x = "Longitude",
+    y = "Latitude",
+    caption = "Data Source: Pacific Climate Impacts Consortium"
+  ) +
+  coord_sf(expand = FALSE)
+
+# Print the plot to R
+print(climate_map)
+
+# Save the plot to a file
 ggsave(
   filename = "climate_station_map.png", # File name
-  plot = ggplot() + 
-    geom_sf(data = bc_SHP_boundary, fill = "lightgrey", color = "black") +
-    geom_sf(data = climate_sf, aes(color = TEMP), size = 1.5) + 
-    scale_color_gradient(low = "blue", high = "red", name = "Temperature (°C)") +
-    theme_minimal() +
-    labs(
-      title = "Climate Data Points in British Columbia",
-      subtitle = "Overlayed on BC Boundary",
-      x = "Longitude",
-      y = "Latitude",
-      caption = "Data Source: Climate Stations Dataset"
-    ) +
-    coord_sf(expand = FALSE),
-  width = 8,   # Width in inches
-  height = 6,  # Height in inches
-  dpi = 300    # Resolution in dots per inch
+  plot = climate_map,                  # The plot object
+  width = 8,                           # Width in inches
+  height = 6,                          # Height in inches
+  dpi = 300                            # Resolution in dots per inch
 )
+
 
 ```
 ## Climate Station Map
@@ -428,45 +455,50 @@ ggsave(
 ### Creating the Wildfire Point Data Map
 Data Preparation and Shapefile Transformation
 This section explains how to read and transform the wildfire shapefile into the same CRS as the rest of the spatial data.
-\newpage
+
 ```{r wildfire map, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
 # Load wildfire data shapefile
 # You should have already done this in the Data section but if you want to load it in again, you must update the CRS. See below:
-fire_shapefile <- "C:/Users/aabar/Desktop/university/Year5/Geog418_LAB/Lab4/BC_Fire_Points_2023-point.shp"  # Adjust path
+fire_shapefile <- "C:/Users/aabar/Desktop/university/Year5/Geog418_LAB/LAB4_SUBMISSION_Test/BC_Fire_Points_2023-point.shp"  # Adjust path
 fire_points <- st_read(fire_shapefile)
 
 # Transform fire points CRS to match BC boundary
-fire_points <- st_transform(fire_points, crs = 3005)
+st_crs(fire_points)  # Check CRS of fire points
+fire_points <- st_transform(fire_points, crs = 3005)  # Select CRS of choice. For this tutorial we use 3005
+
 ```
 Next, we will plot the WildFire points on the BC shp. boundary and save the map to our directory.
 ```{r wildfire map printing, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
-# Load wildfire data shapefile
-# Create a map with wildfire points
-# Save the wildfire map as a PNG file
+# Create the map for wildfire points
+wildfire_map <- ggplot() +
+  geom_sf(data = bc_SHP_boundary, fill = "lightgrey", color = "black") +  
+  geom_sf(data = fire_points, aes(color = "Wildfire Points"), size = 0.5, alpha = 0.5) +  
+  scale_color_manual(values = c("Wildfire Points" = "red")) +  
+  theme_minimal() +
+  labs(
+    title = "Wildfire Points in British Columbia (2023)",
+    caption = "Data Source: BC Fire Points 2023",
+    color = "Legend"
+  ) +
+  theme(
+    legend.position = "right",
+    legend.background = element_rect(fill = "white", color = "black", linewidth = 0.5),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 9),
+    plot.margin = margin(5, 20, 5, 5)
+  ) +
+  coord_sf(expand = FALSE)
+
+# Print the plot to R
+print(wildfire_map)
+
+# Save the plot as a PNG file
 ggsave(
   filename = "wildfire_points_map.png", # File name
-  plot = ggplot() +
-    geom_sf(data = bc_SHP_boundary, fill = "lightgrey", color = "black") +  
-    geom_sf(data = fire_points, aes(color = "Wildfire Points"), size = 0.5, alpha = 0.5) +  
-    scale_color_manual(values = c("Wildfire Points" = "red")) +  
-    theme_minimal() +
-    labs(
-      title = "Wildfire Points in British Columbia (2023)",
-      subtitle = "Mapped with BC Boundary",
-      caption = "Data Source: BC Fire Points 2023",
-      color = "Legend"
-    ) +
-    theme(
-      legend.position = "right",
-      legend.background = element_rect(fill = "white", color = "black", linewidth = 0.5),
-      legend.title = element_text(size = 10),
-      legend.text = element_text(size = 9),
-      plot.margin = margin(5, 20, 5, 5)
-    ) +
-    coord_sf(expand = FALSE),
-  width = 8,   # Width in inches
-  height = 6,  # Height in inches
-  dpi = 300    # Resolution in dots per inch
+  plot = wildfire_map,                  # The plot object
+  width = 8,                            # Width in inches
+  height = 6,                           # Height in inches
+  dpi = 300                             # Resolution in dots per inch
 )
 
 ```
@@ -513,13 +545,15 @@ bc_SHP_boundary <- st_transform(bc_SHP_boundary, crs = 3005)
 Next, we create a grid within the BC boundary extent. The grid will serve as the location for interpolated temperature values. We use the st_make_grid() function to create a spatial grid with a specified cell size (e.g., 25,000 meters). A finer grid would provide more detail but could increase computational complexity.
 
 ```{r Create a Grid for Interpolation IDW, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
-# Create a grid for interpolation within the BC boundary extent
+# Create a grid for the interpolation. Adjust the extent and resolution of the grid according to your needs
 bbox <- st_bbox(bc_SHP_boundary)
 grid <- st_make_grid(st_as_sfc(bbox), cellsize = c(25000, 25000))
 ```
 Next, we run the idw calculation and generate continuous predictions for temperature at each point in the grid, providing an estimation for locations where we don’t have observed data. The idp parameter controls the smoothness of the interpolation. After performing the interpolation, the result is returned as a SpatialPointsDataFrame. To work with this result more easily, we convert it into an sf object, which integrates seamlessly with other spatial functions in R.
 
 ```{r Actual Interpolation IDW, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
+#Next, we run the idw calculation and generate continuous predictions for temperature at each point in the grid, providing an estimation for locations where we don’t have observed data. The idp parameter controls the smoothness of the interpolation. After performing the interpolation, the result is returned as a SpatialPointsDataFrame. To work with this result more easily, we convert it into an sf object, which integrates seamlessly with other spatial functions in R.
+
 # Perform IDW interpolation
 idw_result <- gstat::idw(TEMP ~ 1, 
                          locations = climate_data, 
@@ -528,11 +562,15 @@ idw_result <- gstat::idw(TEMP ~ 1,
 
 # Convert the result to an sf object for easier handling
 idw_sf <- st_as_sf(idw_result)
+
+#Extract coordinates 
+idw_sf <- st_as_sf(idw_result)
+
 ```
 We now visualize the interpolated temperature surface using ggplot2. The geom_sf() function plots the interpolated data, and scale_fill_viridis_c() applies a colour scale to the temperature values. This map should provide a visual representation of the temperature distribution across BC.
 
 ```{r plot IDW, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
-### Visualize the IDW interpolation
+# Visualize the IDW interpolation
 ggplot(data = idw_sf) +
   geom_sf(aes(fill = var1.pred), color = NA) +
   scale_fill_viridis_c(name = "Predicted Temperature (°C)") +
@@ -544,14 +582,15 @@ ggplot(data = idw_sf) +
   theme_minimal() +
   theme(legend.position = "right")
 
-##### Save the result as a shapefile for further use
+# Save the result as a shapefile for further use
 st_write(idw_sf, "IDW_Result.shp", driver = "ESRI Shapefile", delete_dsn = TRUE)
+
 ```
 
 #### Clipping Interpolated Results to BC Boundary
 Since the IDW interpolation generates temperature predictions for the entire grid, it includes areas outside the BC boundary. To focus on relevant data, we use st_intersection() to clip the results to match the BC boundary. This ensures that only temperature predictions within British Columbia are retained. Clipping the results to the BC boundary prevents irrelevant data from being included and ensures that the final map corresponds only to the area of interest.
 
-\newpage
+
 ```{r Clip IDW to BC Boundary, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
 # Check and align the CRS of the IDW results and BC boundary
 crs_idw <- st_crs(idw_sf)
