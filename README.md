@@ -448,7 +448,7 @@ ggsave(
 
 
 ```
-## Climate Station Map
+### Climate Station Map
 ![Climate Station Map](climate_station_map.png)
 *Figure 1: Spatial distribution of climate stations in British Columbia.* This map shows the spatial distribution of climate stations across British Columbia.
 
