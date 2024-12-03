@@ -532,7 +532,7 @@ idw_sf <- st_as_sf(idw_result)
 ```
 We now visualize the interpolated temperature surface using ggplot2. The geom_sf() function plots the interpolated data, and scale_fill_viridis_c() applies a colour scale to the temperature values. This map should provide a visual representation of the temperature distribution across BC.
 
-``{r plot IDW, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
+```{r plot IDW, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
 ### Visualize the IDW interpolation
 ggplot(data = idw_sf) +
   geom_sf(aes(fill = var1.pred), color = NA) +
@@ -547,7 +547,6 @@ ggplot(data = idw_sf) +
 
 ##### Save the result as a shapefile for further use
 st_write(idw_sf, "IDW_Result.shp", driver = "ESRI Shapefile", delete_dsn = TRUE)
-
 ```
 
 #### Clipping Interpolated Results to BC Boundary
@@ -937,7 +936,7 @@ Figure 9. Map of residuals from OLS regression, visualizing the differences betw
 
 
 
-# Morans I here
+# Morans I
 Moran's I is a statistical measure used to assess spatial autocorrelation, which refers to the degree of similarity or dissimilarity between values of a variable at geographically proximate locations. Specifically, it helps identify whether spatial patterns exhibit clustering (i.e., areas with similar values are close together), dispersion (i.e., values are spread out across space), or randomness. In spatial econometrics, Moran's I is often applied to residuals from a regression model to test whether there are patterns in the errors that are spatially structured.
 
 Moran's I ranges from -1 to +1:
@@ -1044,7 +1043,8 @@ dev.off()  # Close the PNG device after the plot is created
 ![Morans I Plot](moran_scatter_plot.png)
 Figure 12. Moran's I scatter plot of residuals, illustrating the spatial lag of residuals against the observed residuals. The plot helps assess the presence of spatial autocorrelation in the residuals, with the slope indicating the degree of spatial dependence.
 
-
+## Summary of Morans I Results
+The results of the Moran's I test on the residuals from the OLS regression show a Moran's I value of -0.0029, which suggests a very weak negative spatial autocorrelation. The expected Moran's I under the null hypothesis is -0.0021, which is very close to the observed value, indicating that the spatial pattern of residuals is nearly random. The variance of the Moran's I is 0.0007, and the calculated z-score is -0.0295, which is very close to zero. This suggests that the observed Moran's I is not significantly different from the expected value, reinforcing the idea that there is no strong spatial autocorrelation in the residuals.
 
 ## Geographically Weighted Regression (GWR) Analysis
 Geographically Weighted Regression (GWR) is a spatial analysis technique that models relationships between variables while accounting for their spatial variability. Unlike Ordinary Least Squares (OLS), which assumes a global relationship, GWR captures localized relationships by performing regressions at each data point, weighted by spatial proximity.
