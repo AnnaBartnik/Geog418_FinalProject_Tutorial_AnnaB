@@ -1130,6 +1130,7 @@ queens_map <- tm_shape(final_data_noNA) +
 tmap_save(queens_map, filename = "queens_map.png", width = 800, height = 600, dpi = 300)
 ```
 ![Queen neighbour](queens_map.png)
+
 *Figure 11. Queen's weight map shows spatial relationships between residuals.* The lines represent the neighbouring polygons based on shared edges or vertices. The map visualizes how spatial relationships are structured in the dataset, based on the Queen's contiguity criterion.
 
 
