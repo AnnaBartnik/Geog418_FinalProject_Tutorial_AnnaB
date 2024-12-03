@@ -452,7 +452,7 @@ ggsave(
 ![Climate Station Map](climate_station_map.png)
 *Figure 1: Spatial distribution of climate stations in British Columbia.* This map shows the spatial distribution of climate stations across British Columbia.
 
-### Creating the Wildfire Point Data Map
+#### Creating the Wildfire Point Data Map
 Data Preparation and Shapefile Transformation
 This section explains how to read and transform the wildfire shapefile into the same CRS as the rest of the spatial data.
 
@@ -511,7 +511,7 @@ ggsave(
 ### Spatial Interpolation of Climate Data:
 Spatial interpolation is a powerful tool in geospatial analysis, allowing us to estimate values at unsampled locations based on measurements taken at known points.
 
-### IDW Interpolation
+# IDW Interpolation
 In this section, we will use the Inverse Distance Weighting (IDW) method to interpolate temperature data across British Columbia (BC) and visualize the results. IDW is a spatial interpolation technique where values at unsampled locations are estimated based on a weighted average of nearby sampled points. IDW assumes that values at nearby locations are more similar than those farther apart, weighting observations inversely proportional to their distance from the target location. The influence of each point diminishes with distance from the target location, and This method is particularly well-suited for climate data, as environmental variables like temperature often exhibit spatial autocorrelation.
 
 The IDW approach calculates the estimated value 
@@ -641,7 +641,7 @@ ggsave("Clipped_IDW_Interpolation_Map.png", plot = idw_plot, width = 10, height 
 
 
 ```
-### Clipped IDW map
+#### Clipped IDW map
 
 ![IDW Map](Clipped_IDW_Interpolation_Map.png)
 *Figure 3. Clipped IDW Temperature Interpolation Map for British Columbia*
@@ -826,7 +826,7 @@ tmap_save(kriging_map, filename = "Clipped_Kriging_Results.png", width = 10, hei
 ### Summary of Kriging Results
 Although the code ran successfully, the output map lacked an interpolated surface. This highlights the importance of troubleshooting and verifying input parameters and spatial data compatibility when working with Kriging. In the discussion section, these issues will be explored further to refine the process and ensure reliable predictions in future attempts.
 
-## Density Map Creation Section:
+# Density Map Creation Section:
 This section of the tutorial will walk you through the process of creating a density map for spatial analysis using point data and a polygon boundary. The example here focuses on wildfire points within British Columbia, utilizing data from the BC Data Catalogue. We'll create a density map to show the distribution and concentration of these events across the province, providing key insights for further analysis or decision-making. The density map we’ll create uses a Kernel Density Estimation (KDE) approach to estimate how frequently a spatial event (e.g., a wildfire) occurs in a specific area. We use the boundary shapefile of British Columbia to define the spatial extent and context for the analysis, ensuring our density map reflects wildfire occurrences specifically within the province’s boundaries.
 
 To estimate density, we define the spatial extent using the BC boundary and create a raster grid with a resolution of 100 km. The resolution determines the granularity of the map.
@@ -916,7 +916,7 @@ ggplot() +
 
 
 
-### Combining Climate and Events Data
+#### Combining Climate and Events Data
 To analyze correlations between climate (e.g., temperature) and wildfire events, perform a spatial join. This combines the event density map with interpolated climate data
 
 #### Spatial Join and Data Preparation
@@ -938,7 +938,7 @@ final_data <- final_data %>%
   mutate(fires = ifelse(is.na(fires), 0, fires))
 ```
 
-### Visualizing the Combined Data
+#### Visualizing the Combined Data
 Next, create a map to visualize the spatial distribution of temperature and events. This map will highlight areas of higher event density, providing insights into possible correlations with temperature.
 ```{r create climate data map , echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
 # Create the map and save it as an object
