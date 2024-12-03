@@ -971,7 +971,7 @@ write.csv(final_data_df, "final_data.csv", row.names = FALSE)
 The wildfire density map reveals a clear clustering of wildfire events in British Columbia, with the most significant concentrations occurring in the southeastern region and a diagonal band stretching northwest to the mid-coast. These areas correspond to regions with higher event densities, ranging from 40 to 80 wildfires per raster cell. Additional hotspots are detected in the northeastern part of the province and on Vancouver Island. The rest of BC shows sparse or no wildfire activity, with zero density in areas such as the northern interior and along the western coastal boundary.
 
 
-## Performing Ordinary Least Squares (OLS) Regression
+# Performing Ordinary Least Squares (OLS) Regression
 Ordinary Least Squares (OLS) regression is a foundational statistical technique used to explore relationships between variables. In spatial analysis, it helps uncover patterns and trends in data distributed across geographic areas. This tutorial demonstrates how to use OLS regression to examine the relationship between temperature (independent variable) and the frequency of fires (dependent variable), focusing on how temperature influences wildfire spatial variability.
 
 ### Why OLS Regression is Important
@@ -1137,7 +1137,7 @@ dev.off()  # Close the PNG device after the plot is created
 ## Summary of Morans I Results
 The results of the Moran's I test on the residuals from the OLS regression show a Moran's I value of -0.0029, which suggests a very weak negative spatial autocorrelation. The expected Moran's I under the null hypothesis is -0.0021, which is very close to the observed value, indicating that the spatial pattern of residuals is nearly random. The variance of the Moran's I is 0.0007, and the calculated z-score is -0.0295, which is very close to zero. This suggests that the observed Moran's I is not significantly different from the expected value, reinforcing the idea that there is no strong spatial autocorrelation in the residuals.
 
-## Geographically Weighted Regression (GWR) Analysis
+# Geographically Weighted Regression (GWR) Analysis
 Geographically Weighted Regression (GWR) is a spatial analysis technique that models relationships between variables while accounting for their spatial variability. Unlike Ordinary Least Squares (OLS), which assumes a global relationship, GWR captures localized relationships by performing regressions at each data point, weighted by spatial proximity.
 
 In this tutorial, we analyze the relationship between temperature (temprtr) and the number of fires, using two GWR approaches:
@@ -1325,7 +1325,7 @@ ggsave("gwr_coefficients_optimal_bandwidth.png", width = 10, height = 8, dpi = 3
 !GWRfixed200](gwr_optimal_bandwidth.png)
 *Figure 14. Spatial distribution of the local R² values from the optimal bandwidth GWR model.* The map reveals greater variability compared to the fixed bandwidth model. Two hotspots with local R² values around 0.2 are located in the northern sections along the west coast, while the rest of the province fluctuates between 0 and 0.1. Negative local R² values are minimal, but the generally low values suggest limited explanatory power in the model.
 
-#### Summary of Results of Optimal GWR Model
+### Summary of Results of Optimal GWR Model
 The use of an optimal bandwidth allows the model to adapt to spatial heterogeneity more effectively, resulting in a map that better reflects local variations in the relationship between temperature and the number of fires. Unlike the fixed bandwidth model, this approach captures subtle spatial differences, as evidenced by two distinct hotspots of higher local R² values (approximately 0.2) in the northern sections along the west coast. However, most of the province exhibits local R² values between 0 and 0.1, with very few negative values.
 
 The consistently low local R² values across the region indicate that the model explains only a small proportion of the variability in the dependent variable (number of fires) using the independent variable (temperature). This suggests that additional factors not included in the model likely play a significant role in influencing the spatial distribution of fires. While the optimal bandwidth improves the analysis by capturing variability more accurately, the limited explanatory power highlights the need for further investigation into other potential drivers of fire occurrence.
