@@ -514,14 +514,33 @@ The map displays a spatially continuous temperature surface for British Columbia
 
 
 ## Kriging
-Kriging is a geostatistical interpolation method that generates predictions for unmeasured locations based on spatial autocorrelation. It incorporates both distance and the degree of variation between points, making it a robust method for analyzing climate data. In this section, we will:
+Kriging is a geostatistical interpolation method that generates predictions for unmeasured locations based on spatial autocorrelation.  Unlike simpler methods like Inverse Distance Weighting (IDW), Kriging incorporates a statistical model of spatial relationships, represented through a semivariogram. The semivariogram describes how the variance between values changes with distance, allowing the method to account for both the strength and range of spatial dependencies. This makes Kriging especially effective in capturing complex spatial patterns, such as those found in climate data.
+
+Kriging is considered a global interpolation technique because it uses all available data to make predictions, rather than relying solely on nearby points. The results are exact at measured points and provide an optimal prediction for unmeasured locations under the assumptions of the model.
+
+The key steps in Kriging include:
+
+* Fitting a semivariogram to model spatial dependence in the data.
+* Using the semivariogram parameters (nugget, sill, and range) for interpolation.
+* Applying the fitted model to predict values over a regular grid.
+Clipping the predicted surface to a relevant spatial boundary, such as the outline of British Columbia (BC) in this study. In this section, we will:
 
 1. Fit a variogram to model spatial dependence in the data.
 2. Use the fitted variogram for Kriging interpolation.
 3. Clip the results to the boundary of British Columbia for spatial relevance.
 
-### Variogram Fitting
-To perform Kriging, we first need to fit a variogram, which models how spatial correlation changes with distance. Here, we use a spherical model, which is commonly applied to climate data.
+### Semivariogram Fitting
+To perform Kriging, we first need to fit a semivariogram, which models how spatial correlation changes with distance. Variograms model how similar points are based on their distance apart. They’re essential for Kriging because they guide how predictions are made.
+
+What are the different models?
+
+* Spherical Model: Best for data with moderate spatial continuity. It shows an increasing correlation with distance until it levels off at the “range.” Commonly used for environmental data.
+* Exponential Model: Works well when correlation drops off sharply at short distances, ideal for abrupt changes.
+* Gaussian Model: Suitable for smooth transitions in correlation, often for datasets where even distant points maintain some relationship.
+How do we fit the semivariogram?
+
+Use the observed semivariance in the data to fit each model.
+We’ll test all three models and compare their fit to choose the best one.
 \newpage
 ```{r onto kriging Variogram Fitting, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
 
@@ -533,26 +552,73 @@ climate_data <- st_read("ClimateData.shp")
 # Define the formula for Kriging
 f.0 <- as.formula(TEMP ~ 1)
 
-# Create a variogram
+# Create a semivariogram
 var.smpl <- variogram(f.0, climate_data, cloud = FALSE)
 
-# Fit the variogram using a spherical model
-dat.fit <- fit.variogram(var.smpl, fit.ranges = TRUE, fit.sills = TRUE,
-                         vgm(model = "Sph", nugget = 8, psill = 20, range = 400000))
+# Fit the variograms using different models
+dat.fit.sph <- fit.variogram(var.smpl, fit.ranges = TRUE, fit.sills = TRUE,
+                             vgm(model = "Sph", nugget = 8, psill = 20, range = 400000))
+dat.fit.exp <- fit.variogram(var.smpl, fit.ranges = TRUE, fit.sills = TRUE,
+                             vgm(model = "Exp", nugget = 8, psill = 20, range = 400000))
+dat.fit.gau <- fit.variogram(var.smpl, fit.ranges = TRUE, fit.sills = TRUE,
+                             vgm(model = "Gau", nugget = 8, psill = 20, range = 400000))
 
-# Plot the variogram and fitted model
-plot(var.smpl, dat.fit)
+# Plot the variograms and fitted models
+par(mfrow = c(1, 3)) # Arrange plots in a single row for comparison
+plot(var.smpl, dat.fit.sph, main = "Spherical Model")
+plot(var.smpl, dat.fit.exp, main = "Exponential Model")
+plot(var.smpl, dat.fit.gau, main = "Gaussian Model")
+
 ```
+![SemivariogramSpherical](Variogram_Spherical.png)
+Figure 4. Spherical Semivariogram
+
+![SemiariogramExponential](Variogram_Exponential.png)
+Figure 5. Exponential Semivariogram
+
+![SemiariogramGaussian](Variogram_Gaussian.png)
+Figure 6. Gaussian Semivariogram
+
+### Comparing the Semivariogram Models
+Let’s look at how each semivariogram model fits the data and why they are all reasonable choices in this case.
+
+#### Spherical Model (Figure 4)
+Fit: Gradually increases in semivariance with distance and levels off at the sill, around a range of 12. This model aligns well with the general trend of the data.
+Best for: Moderate spatial continuity, where relationships between data points decay smoothly and stabilize over distance.
+Performance: A solid fit, but the curvature isn’t perfectly sharp, meaning it provides a general representation rather than a precise match to specific features of the data.
+#### Exponential Model (Figure 5)
+Fit: Rises more sharply at shorter distances, then levels off gradually around a range of 12, matching the observed sill. The curve is slightly more gradual than the Spherical model but still captures the key spatial patterns.
+Best for: Datasets where rapid changes occur over short distances but with spatial correlation extending further.
+Performance: Fits the observed data just as reasonably as the Spherical model, offering a slightly softer curvature. This makes it equally valid for modeling the spatial variability in this dataset.
+#### Gaussian Model (Figure 6)
+Fit: Increases more gradually near the origin and smooths out as it approaches the sill, also around the range of 12. While it assumes more distant relationships, it still captures the overall trend.
+Best for: Very smooth datasets where distant points retain some correlation.
+Performance: Adequately fits the data but may oversimplify smaller-scale variability due to its smoother curve.
+
+### Which Model to Choose?
+In this analysis, no single model is clearly superior. All three semivariogram models (Spherical, Exponential, and Gaussian) provide a reasonable fit to the data. Here’s why:
+
+* Range Alignment: All models level off around a range of 12, aligning with the observed data’s spatial correlation structure.
+* Sill Representation: Each model captures the stabilization in semivariance, which is crucial for Kriging.
+* Moderate Differences in Curvature: The Exponential model’s slightly softer curvature provides a middle ground between the sharpness of the Spherical model and the smoothness of the Gaussian model.
 
 
+The Exponential model has a gentle curve that closely matches the overall trend in the semivariance data.
+Its sharper rise at shorter distances makes it suitable for capturing localized variability while still stabilizing at longer ranges.
+In this case, the Exponential model offers a balance between over-smoothing (Gaussian) and sharper transitions (Spherical), making it a practical choice.
+Ultimately, since the differences between the models are minor, the choice may come down to preference or application context. For this dataset, any of the models would perform similarly in Kriging interpolation, with no significant trade-offs.
 
-### The fitted variogram provides the parameters required for Kriging, including the nugget, partial sill, and range. These values describe the spatial variability in temperature data.
 
-### Kriging Interpolation
-Using the fitted variogram, we generate predicted temperature values for a grid covering the study area. The grid resolution is chosen to balance computational efficiency and spatial detail.
+### onto Kriging Interpolation map
+Next, we’ll walk through the steps of generating a Kriging interpolation map to predict temperature values across British Columbia using geostatistical methods. This involves setting up a grid, applying the fitted semivariogram, performing Kriging, and visualizing the results.
 
-### Summary of Kriging Results
-The Kriging interpolation generated a detailed spatial prediction surface for temperature in British Columbia. The clipped raster highlights the temperature distribution within the province, showcasing the utility of geostatistical methods in climate analysis. The visualization provides a robust foundation for understanding temperature variability across the region.
+#### Setting Up the Grid
+To perform Kriging, we will first create a regular grid of points over the study area. This grid will act as the basis for interpolation. The grid resolution is crucial: a finer grid gives more detail but increases computation time, while a coarser grid is faster but less precise.
+
+In our case:
+Resolution: 25,000 meters (chosen for efficiency and spatial detail).
+Grid Type: A center-point grid using the study area boundary shapefile.
+
 \newpage
 ```{r trying all kriging at once before party, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
 #-----onto kriging! ----#
@@ -589,15 +655,20 @@ tm_shape(clipped_raster) +
   tm_scale_bar(position = c("left", "bottom"))
 
 
+#Save the map as an image file (optional)
+ggsave("Clipped_Kriging_Interpolation_Map.png", width = 10, height = 8, dpi = 300)
 ```
+![Clipped kriging raster to bc boundary](kriging_map.png)
+Figure 7. Clipped British Columbia boundary shapefile showing the absence of an interpolated kriging temperature surface. Despite running the Kriging code, no predicted temperature values were generated. Possible reasons are discussed in the following section.
 
-
+### Summary of Kriging Results
+Although the code ran successfully, the output map lacked an interpolated surface. This highlights the importance of troubleshooting and verifying input parameters and spatial data compatibility when working with Kriging. In the discussion section, these issues will be explored further to refine the process and ensure reliable predictions in future attempts.
 
 ## Density Map Creation Section:
+This section of the tutorial will walk you through the process of creating a density map for spatial analysis using point data and a polygon boundary. The example here focuses on wildfire points within British Columbia, utilizing data from the BC Data Catalogue. We'll create a density map to show the distribution and concentration of these events across the province, providing key insights for further analysis or decision-making. The density map we’ll create uses a Kernel Density Estimation (KDE) approach to estimate how frequently a spatial event (e.g., a wildfire) occurs in a specific area. We use the boundary shapefile of British Columbia to define the spatial extent and context for the analysis, ensuring our density map reflects wildfire occurrences specifically within the province’s boundaries.
 
-Start from here to create the density map, which is the core of your spatial analysis:
-\newpage
-```{r density map2, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
+To estimate density, we define the spatial extent using the BC boundary and create a raster grid with a resolution of 100 km. The resolution determines the granularity of the map.
+```{r density map1, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
 
 # Load your point data (make sure to adjust the path). Here we use a wildfire dataset from the BC Data Catoluge called C_FIRE_PNT_point and our BC Boundary file.
 C_FIRE_PNT_point <- st_read("BC_Fire_Points_2023-point.shp")
@@ -611,8 +682,10 @@ bbox2 <- st_bbox(bc_SHP_boundary)
 
 raster_res <- 100000  # This resolution in 100000 meters 
 raster_template <- raster(extent(bbox2), res = c(raster_res, raster_res))
+```
 
-
+Use the raster grid to calculate wildfire density. Ensure missing values are handled properly to avoid data gaps.
+```{r density map2, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
 # Estimate density using kernel density estimate
 density_raster <- raster::rasterize(st_as_sf(C_FIRE_PNT_point), raster_template, fun = "count", field = 1)
 
@@ -630,7 +703,10 @@ colnames(density_df)[colnames(density_df) == "layer"] <- "fires"
 density_sf <- st_as_sf(density_df, coords = c("x", "y"), crs = st_crs(bc_SHP_boundary))
 
 st_crs(density_sf)
+```
 
+Using ggplot2, plot the density map with the BC boundary overlay. This visualization highlights regions with higher wildfire frequencies.
+```{r density map2, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
 # Plotting the density map with the polygon boundary
 ggplot() +
   geom_raster(data = density_df, aes(x = x, y = y, fill = fires)) +  # Use 'fires' from the data frame
@@ -645,12 +721,13 @@ ggplot() +
 
 
 #### Outputting and Saving the Results:
-
-You then save the results of the density map to a shapefile and generate another visualization for confirmation:
+Export the density map as a shapefile for further analysis or sharing.
 ```{r density map3, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
 # Write to a shapefile
 st_write(density_sf, "density_points.shp", delete_dsn = TRUE)
-
+```
+Using the saved shapefile results, generate another visualization for confirmation:
+```{r density map4, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
 # Create a simple map
 ggplot() +
   geom_sf(data = bc_SHP_boundary, fill = NA, color = "black") +  # Plot the boundary polygon
@@ -666,10 +743,10 @@ ggplot() +
 
 
 ### Combining Climate and Events Data
-In this section, the climate data and event density data are combined by performing a spatial join. This allows us to analyze the relationship between temperature and the number of events (fires). The following steps outline the data processing workflow:
+To analyze correlations between climate (e.g., temperature) and wildfire events, perform a spatial join. This combines the event density map with interpolated climate data
 
-### Spatial Join and Data Preparation
-The spatial join was performed to overlay the event density values onto the interpolated climate surface. This ensures that each polygon in the interpolated surface includes information about nearby event densities.
+#### Spatial Join and Data Preparation
+The spatial join is performed to overlay the event density values onto the interpolated climate surface. This ensures that each polygon in the interpolated surface includes information about nearby event densities.
 
 ```{r spatial-join, echo=TRUE, message=FALSE, warning=FALSE, results = "hide"}
 # Perform the spatial join
@@ -688,18 +765,22 @@ final_data <- final_data %>%
 ```
 
 ### Visualizing the Combined Data
-A map was created to visualize the spatial distribution of temperature and events. The map highlights areas of higher event density, providing insights into possible correlations with temperature.
+Next, create a map to visualize the spatial distribution of temperature and events. This map will highlight areas of higher event density, providing insights into possible correlations with temperature.
 ```{r create climate data map , echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
-# Create the map
-ggplot(data = final_data) +
+# Create the map and save it as an object
+final_map <- ggplot(data = final_data) +
   geom_sf(aes(fill = fires)) +
   scale_fill_viridis_c(option = "C") +
   theme_minimal() +
   labs(
-    title = "Spatial Distribution of Temperature and Events",
-    fill = "Event Density"
+    title = "Wildfire Event Density and Temperature Map",
+    fill = "Event Density (fires)"
   ) +
   theme(legend.position = "right")
+
+# Save the map as an image file
+ggsave("combined_temperature_fire_density_map.png", plot = final_map, width = 10, height = 6, dpi = 300)
+
 # Save final_data as a shapefile
 st_write(final_data, "final_data.shp", delete_dsn = TRUE)
 
@@ -709,7 +790,11 @@ final_data_df <- st_drop_geometry(final_data)
 # Write as CSV
 write.csv(final_data_df, "final_data.csv", row.names = FALSE)
 ```
+![Temp_Events_Map](combined_temperature_fire_density_map.png)
+Figure 8. Wildfire Event Density and Temperature Map. The map illustrates the spatial distribution of wildfire event density across British Columbia overlaid with interpolated temperature data. Areas with higher densities of wildfire events are shown in warmer tones, with notable clustering in the southeast and along a diagonal band extending to the mid-coast. Additional high-density points are visible in the northeast corner and on Vancouver Island, while the remaining areas of BC exhibit little to no wildfire activity.
 
+### Summary of Results:
+The wildfire density map reveals a clear clustering of wildfire events in British Columbia, with the most significant concentrations occurring in the southeastern region and a diagonal band stretching northwest to the mid-coast. These areas correspond to regions with higher event densities, ranging from 40 to 80 wildfires per raster cell. Additional hotspots are detected in the northeastern part of the province and on Vancouver Island. The rest of BC shows sparse or no wildfire activity, with zero density in areas such as the northern interior and along the western coastal boundary.
 
 
 ## Performing Ordinary Least Squares (OLS) Regression
