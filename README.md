@@ -21,7 +21,7 @@ Our dataset is a prime example of how one small, poorly distributed sample can l
 ## Research Question:
 How does spatial autocorrelation in poorly distributed climate data influence the assumptions and outcomes of spatial regression and interpolation methods used to analyze temperature impacts on wildfire events in British Columbia?
 
-## Objectives
+### Objectives
 This tutorial aims to demonstrate how to perform a variety of spatial analyses while working with poory distributed and limited data. The key objectives include:
 
 * Reading and preparing spatial data: Learn how to read and clean climate and wildfire event data for analysis.
@@ -67,7 +67,7 @@ library(grid)
 
 ```
 
-# Set working directory
+#### Set working directory
 To ensure the smooth functioning of code throughout the project, set the working directory to the folder where your data and outputs will be stored. Adjust the path based on your file system:
 ```{r setup working directory, include=FALSE}
 #CHANGE TO YOUR RESPECTIVE DIRECTORY:
@@ -114,7 +114,7 @@ The climate data used for this analysis was downloaded from the Pacific Climate 
 ## Data Cleaning and Preparation:
 Before conducting spatial analysis, it’s essential to clean and prepare the raw temperature data. This involves merging station metadata with temperature observations, removing outliers, and filtering for unrealistic values. Properly cleaning the data ensures that our results are accurate and reliable. Once cleaned, we aggregate the hourly temperature data into daily, monthly, and seasonal averages. This step reduces noise caused by short-term temperature fluctuations and highlights broader trends that are more relevant for spatial regression and interpolation techniques.
 
-### Initializing an Empty Climate Data File
+#### Initializing an Empty Climate Data File
 To facilitate the merging of station metadata with temperature observations, we’ll first create an empty data file to store aggregated results. This file will act as the central repository for the cleaned and processed temperature data.
 ```{r Climate Data File, echo = TRUE, results= 'hide', warning= FALSE, message= FALSE}
 # Initialize an empty data frame
@@ -303,7 +303,7 @@ write.csv(merged_data, file = "ClimateData.csv", row.names = FALSE)
 ```
 
 
-### Descriptive statistics of wildfire data in 2023
+## Descriptive statistics of wildfire data in 2023
 The descriptive statistics section allows us to explore the general characteristics of wildfire sizes in 2024, both for the full year and for just the summer months (June to August). These statistics include measures of central tendency (mean, median, and mode), dispersion (standard deviation, coefficient of variation), distribution (skewness and kurtosis), and normality tests.
 ```{r MWildfire descript stats, echo = FALSE, message = FALSE}
 # ----- DESCRIPTIVE STATISTICS for Wildfire in 2023 ----- #
@@ -624,7 +624,7 @@ ggplot(data = idw_clipped) +
 # Save the clipped results as a map
 ggsave("Clipped_IDW_Interpolation_Map.png", width = 10, height = 8, dpi = 300)
 ```
-## Clipped IDW map
+### Clipped IDW map
 
 ![IDW Map](Clipped_IDW_Interpolation_Map.png)
 Figure 3. *Clipped IDW Temperature Interpolation Map for British Columbia*
@@ -649,7 +649,7 @@ Clipping the predicted surface to a relevant spatial boundary, such as the outli
 2. Use the fitted variogram for Kriging interpolation.
 3. Clip the results to the boundary of British Columbia for spatial relevance.
 
-### Semivariogram Fitting
+#### Semivariogram Fitting
 To perform Kriging, we first need to fit a semivariogram, which models how spatial correlation changes with distance. Variograms model how similar points are based on their distance apart. They’re essential for Kriging because they guide how predictions are made.
 
 What are the different models?
@@ -699,7 +699,7 @@ Figure 5. Exponential Semivariogram
 ![SemiariogramGaussian](Variogram_Gaussian.png)
 Figure 6. Gaussian Semivariogram
 
-### Comparing the Semivariogram Models
+#### Comparing the Semivariogram Models
 Let’s look at how each semivariogram model fits the data and why they are all reasonable choices in this case.
 
 #### Spherical Model (Figure 4)
@@ -729,7 +729,7 @@ In this case, the Exponential model offers a balance between over-smoothing (Gau
 Ultimately, since the differences between the models are minor, the choice may come down to preference or application context. For this dataset, any of the models would perform similarly in Kriging interpolation, with no significant trade-offs.
 
 
-### onto Kriging Interpolation map
+#### Creating the Kriging Interpolation map
 Next, we’ll walk through the steps of generating a Kriging interpolation map to predict temperature values across British Columbia using geostatistical methods. This involves setting up a grid, applying the fitted semivariogram, performing Kriging, and visualizing the results.
 
 #### Setting Up the Grid
