@@ -549,11 +549,9 @@ Next, we create a grid within the BC boundary extent. The grid will serve as the
 bbox <- st_bbox(bc_SHP_boundary)
 grid <- st_make_grid(st_as_sfc(bbox), cellsize = c(25000, 25000))
 ```
-Next, we run the idw calculation and generate continuous predictions for temperature at each point in the grid, providing an estimation for locations where we don’t have observed data. The idp parameter controls the smoothness of the interpolation. After performing the interpolation, the result is returned as a SpatialPointsDataFrame. To work with this result more easily, we convert it into an sf object, which integrates seamlessly with other spatial functions in R.
+Next, we run the IDW calculation and generate continuous predictions for temperature at each point in the grid, providing an estimation for locations where we don’t have observed data. The idp parameter controls the smoothness of the interpolation. After performing the interpolation, the result is returned as a SpatialPointsDataFrame. To work with this result more easily, we convert it into an sf object, which integrates seamlessly with other spatial functions in R.
 
 ```{r Actual Interpolation IDW, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
-#Next, we run the idw calculation and generate continuous predictions for temperature at each point in the grid, providing an estimation for locations where we don’t have observed data. The idp parameter controls the smoothness of the interpolation. After performing the interpolation, the result is returned as a SpatialPointsDataFrame. To work with this result more easily, we convert it into an sf object, which integrates seamlessly with other spatial functions in R.
-
 # Perform IDW interpolation
 idw_result <- gstat::idw(TEMP ~ 1, 
                          locations = climate_data, 
@@ -566,6 +564,20 @@ idw_sf <- st_as_sf(idw_result)
 #Extract coordinates 
 idw_sf <- st_as_sf(idw_result)
 
+### Visualize the IDW interpolation
+ggplot(data = idw_sf) +
+  geom_sf(aes(fill = var1.pred), color = NA) +
+  scale_fill_viridis_c(name = "Predicted Temperature (°C)") +
+  labs(
+    title = "IDW Interpolation of Temperature",
+    x = "Longitude",
+    y = "Latitude"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "right")
+
+##### Save the result as a shapefile for further use
+st_write(idw_sf, "IDW_Result.shp", driver = "ESRI Shapefile", delete_dsn = TRUE)
 ```
 We now visualize the interpolated temperature surface using ggplot2. The geom_sf() function plots the interpolated data, and scale_fill_viridis_c() applies a colour scale to the temperature values. This map should provide a visual representation of the temperature distribution across BC.
 
@@ -608,8 +620,8 @@ idw_clipped <- st_intersection(idw_sf, bc_SHP_boundary)
 ```
 Finally, we can plot the clipped results to visualize the temperature distribution across British Columbia within the boundary. This map provides the final output of the IDW interpolation.
 ```{r plot clipped IDW to BC Boundary, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
-# Plot the clipped interpolation results
-ggplot(data = idw_clipped) +
+# Create the plot for the clipped IDW results
+idw_plot <- ggplot(data = idw_clipped) +
   geom_sf(aes(fill = var1.pred), color = NA) +
   scale_fill_viridis_c(option = "D") +
   labs(
@@ -621,8 +633,13 @@ ggplot(data = idw_clipped) +
   theme_minimal() +
   theme(legend.position = "right")
 
+# Print the plot to R
+print(idw_plot)
+
 # Save the clipped results as a map
-ggsave("Clipped_IDW_Interpolation_Map.png", width = 10, height = 8, dpi = 300)
+ggsave("Clipped_IDW_Interpolation_Map.png", plot = idw_plot, width = 10, height = 8, dpi = 300)
+
+
 ```
 ### Clipped IDW map
 
@@ -662,12 +679,14 @@ How do we fit the semivariogram?
 Use the observed semivariance in the data to fit each model.
 We’ll test all three models and compare their fit to choose the best one.
 \newpage
-```{r onto kriging Variogram Fitting, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
+```{r Variogram Fitting, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
 
-# Read and transform data
+# Read the shapefile + the boundary
 bc_SHP_boundary <- st_read("BC.shp")
 bc_SHP_boundary <- st_transform(bc_SHP_boundary, crs = 3005)
 climate_data <- st_read("ClimateData.shp")
+st_crs(bc_SHP_boundary)
+
 
 # Define the formula for Kriging
 f.0 <- as.formula(TEMP ~ 1)
@@ -675,19 +694,39 @@ f.0 <- as.formula(TEMP ~ 1)
 # Create a semivariogram
 var.smpl <- variogram(f.0, climate_data, cloud = FALSE)
 
-# Fit the variograms using different models
+# Create variogram. Be sure to test out the different models.
+# Plot the variograms and fitted models
+var.smpl <- variogram(f.0, climate_data, cloud = FALSE) 
+dat.fit  <- fit.variogram(var.smpl, fit.ranges = TRUE, fit.sills = TRUE,
+                          vgm(model="Sph", nugget = 8, psill = 20, 
+                              range = 400000))
+plot(var.smpl, dat.fit)
+
+# Save the variogram plot as a PNG image
+png("variogram_plot.png", width = 800, height = 600)
+plot(var.smpl, dat.fit)
+dev.off()
+
+# Save the Spherical model variogram as a PNG
 dat.fit.sph <- fit.variogram(var.smpl, fit.ranges = TRUE, fit.sills = TRUE,
                              vgm(model = "Sph", nugget = 8, psill = 20, range = 400000))
+png("Variogram_Spherical.png", width = 800, height = 600)
+plot(var.smpl, dat.fit.sph, main = "Spherical Model")
+dev.off()
+
+# Save the Exponential model variogram as a PNG
 dat.fit.exp <- fit.variogram(var.smpl, fit.ranges = TRUE, fit.sills = TRUE,
                              vgm(model = "Exp", nugget = 8, psill = 20, range = 400000))
+png("Variogram_Exponential.png", width = 800, height = 600)
+plot(var.smpl, dat.fit.exp, main = "Exponential Model")
+dev.off()
+
+# Save the Gaussian model variogram as a PNG
 dat.fit.gau <- fit.variogram(var.smpl, fit.ranges = TRUE, fit.sills = TRUE,
                              vgm(model = "Gau", nugget = 8, psill = 20, range = 400000))
-
-# Plot the variograms and fitted models
-par(mfrow = c(1, 3)) # Arrange plots in a single row for comparison
-plot(var.smpl, dat.fit.sph, main = "Spherical Model")
-plot(var.smpl, dat.fit.exp, main = "Exponential Model")
+png("Variogram_Gaussian.png", width = 800, height = 600)
 plot(var.smpl, dat.fit.gau, main = "Gaussian Model")
+dev.off()
 
 ```
 ![SemivariogramSpherical](Variogram_Spherical.png)
@@ -760,8 +799,8 @@ predicted_raster <- rasterFromXYZ(kriging_df[, c("x", "y", "var1.pred")], crs = 
 # Clip the Kriging raster to BC boundary
 clipped_raster <- mask(predicted_raster, as_Spatial(bc_SHP_boundary))
 
-# Visualize the clipped raster
-tm_shape(clipped_raster) +
+# Visualize the clipped raster and assign it to kriging_map
+kriging_map <- tm_shape(clipped_raster) +
   tm_raster(palette = viridis(10), title = "Predicted Temperature (Clipped)") +  # Add title for legend
   tm_shape(bc_SHP_boundary) +
   tm_borders(col = "black", lwd = 1) +
@@ -774,9 +813,12 @@ tm_shape(clipped_raster) +
   tm_compass(position = c("right", "top")) +
   tm_scale_bar(position = c("left", "bottom"))
 
+# Print the map in R
+print(kriging_map)
 
-#Save the map as an image file (optional)
-ggsave("Clipped_Kriging_Interpolation_Map.png", width = 10, height = 8, dpi = 300)
+# Save the map to a PNG file
+tmap_save(kriging_map, filename = "Clipped_Kriging_Results.png", width = 10, height = 8, dpi = 300)
+
 ```
 ![Clipped kriging raster to bc boundary](kriging_map.png)
 Figure 7. Clipped British Columbia boundary shapefile showing the absence of an interpolated kriging temperature surface. Despite running the Kriging code, no predicted temperature values were generated. Possible reasons are discussed in the following section.
@@ -841,13 +883,25 @@ ggplot() +
 
 
 #### Outputting and Saving the Results:
-Export the density map as a shapefile for further analysis or sharing.
+Export the density map as a dataframe for further analysis or sharing.
 ```{r density map3, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
+# Convert the raster to a data frame
+density_df <- as.data.frame(density_raster, xy = TRUE)
+```
+Using the final results, generate a visualization:
+```{r density map4, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
+# Rename the 'layer' column to 'fires'
+colnames(density_df)[colnames(density_df) == "layer"] <- "fires"
+
+# Replace NA values with zeros
+density_df[is.na(density_df$fires), "fires"] <- 0
+
+# Convert to a spatial points data frame using sf
+density_sf <- st_as_sf(density_df, coords = c("x", "y"), crs = st_crs(bc_SHP_boundary))
+
 # Write to a shapefile
 st_write(density_sf, "density_points.shp", delete_dsn = TRUE)
-```
-Using the saved shapefile results, generate another visualization for confirmation:
-```{r density map4, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
+
 # Create a simple map
 ggplot() +
   geom_sf(data = bc_SHP_boundary, fill = NA, color = "black") +  # Plot the boundary polygon
@@ -875,11 +929,11 @@ joined_data <- st_join(idw_clipped, density_sf, join = st_intersects)
 # Select needed columns
 final_data <- joined_data[, c("var1.pred", "fires")]
 
-# Rename column for clarity
+# Rename column
 final_data <- final_data %>%
   rename(temperature = var1.pred)
 
-# Replace NA values in the 'fires' column with 0
+# Replace NA values in the fires column with 0
 final_data <- final_data %>%
   mutate(fires = ifelse(is.na(fires), 0, fires))
 ```
