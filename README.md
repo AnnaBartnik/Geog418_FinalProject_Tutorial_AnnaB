@@ -1252,7 +1252,7 @@ ggplot(data = gwr_output_sf_fixed) +
 # Optional: Save the plot
 ggsave("gwr_coefficients_fixed_bandwidth.png", width = 10, height = 8, dpi = 300)
 ```
-!GWRfixed200](gwr_fixed_bandwidth.png)
+![GWRfixed200](gwr_fixed_bandwidth.png)
 *Figure 13. Spatial distribution of the local R² values from the fixed 200km bandwidth GWR model.*
 
 ### Summary of GWR fixed bandwidth results
