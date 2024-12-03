@@ -727,12 +727,17 @@ dev.off()
 
 ```
 ![SemivariogramSpherical](Variogram_Spherical.png)
+
 *Figure 4. Spherical Semivariogram*
 
+
 ![SemiariogramExponential](Variogram_Exponential.png)
+
 *Figure 5. Exponential Semivariogram*
 
+
 ![SemiariogramGaussian](Variogram_Gaussian.png)
+
 *Figure 6. Gaussian Semivariogram*
 
 #### Comparing the Semivariogram Models
