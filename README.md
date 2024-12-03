@@ -678,7 +678,7 @@ How do we fit the semivariogram?
 
 Use the observed semivariance in the data to fit each model.
 We’ll test all three models and compare their fit to choose the best one.
-\newpage
+
 ```{r Variogram Fitting, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
 
 # Read the shapefile + the boundary
@@ -778,7 +778,7 @@ In our case:
 Resolution: 25,000 meters (chosen for efficiency and spatial detail).
 Grid Type: A center-point grid using the study area boundary shapefile.
 
-\newpage
+
 ```{r trying all kriging at once before party, echo = FALSE, message = FALSE, warning = FALSE, results = "hide"}
 #-----onto kriging! ----#
 
@@ -1180,7 +1180,7 @@ A fixed bandwidth of 200 km was used to perform GWR. This method applies the sam
 Using a fixed bandwidth of 200 km ensures consistent spatial influence in the model.
 
 The fixed bandwidth GWR model coefficients and their spatial distribution are visualized below.
-\newpage
+
 ```{r GWR fixed Bandwidth, echo=FALSE, message=FALSE, warning=FALSE, results = "hide"}
 # Prepare variables
 dependent_var <- final_data_sp@data$fires
