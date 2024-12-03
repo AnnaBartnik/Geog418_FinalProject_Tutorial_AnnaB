@@ -820,7 +820,7 @@ print(kriging_map)
 tmap_save(kriging_map, filename = "Clipped_Kriging_Results.png", width = 10, height = 8, dpi = 300)
 
 ```
-![Clipped kriging raster to bc boundary](kriging_map.png)
+![Clipped kriging raster to bc boundary](Clipped_Kriging_Results.png)
 *Figure 7. Kriging Raster to BCboundary.* Clipped British Columbia boundary shapefile showing the absence of an interpolated kriging temperature surface. Despite running the Kriging code, no predicted temperature values were generated. Possible reasons are discussed in the following section.
 
 ### Summary of Kriging Results
