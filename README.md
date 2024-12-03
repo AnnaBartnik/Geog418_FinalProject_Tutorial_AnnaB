@@ -1104,7 +1104,8 @@ dev.off()
 
 ```
 ![Morans I summary table](moran_summary_table.png)
-*Figure 10. Morans I summary table * The summary table presents the key results from the Moran's I test, including the Moran's I statistic, the expected Moran's I, the variance, and the z-score, which tests the significance of the observed Moran's I.
+
+*Figure 10. Morans I summary table.* The summary table presents the key results from the Moran's I test, including the Moran's I statistic, the expected Moran's I, the variance, and the z-score, which tests the significance of the observed Moran's I.
 
 The following code generates a map visualizing the Queen’s weight scheme for the residuals and saves it as a PNG file.
 ```{r Morans I3, echo=FALSE, message=FALSE, warning=FALSE, results = "hide"}
