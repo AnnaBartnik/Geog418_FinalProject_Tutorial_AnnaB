@@ -3,35 +3,34 @@ Geog418_FinalProject_Tutorial_AnnaB
 Author: Anna Bartnik
 
 # 1. Introduction
-## Background
-British Columbia (BC) is prone to various climate-mediated events, including wildfires, which pose significant risks to both people and infrastructure. In recent years, the province has seen an increase in wildfire activity, largely attributed to rising temperatures, drought conditions, and changing precipitation patterns driven by climate change. Understanding the spatial distribution of these fires, as well as the climate factors that contribute to their occurrence, is essential for developing effective emergency management strategies aimed at minimizing property loss, injuries, and fatalities.
+### Background
+Wildfires have become an increasingly prevalent issue in British Columbia (BC), with the province experiencing an uptick in frequency and intensity in recent years. Much of this rise is linked to climate change, with factors like higher temperatures, drought, and altered precipitation patterns exacerbating wildfire risks. In 2023, BC recorded its largest wildfire season yet, both in terms of the number of fires and the total area burned. With climate change continuing to affect the environment, understanding how climate variables like temperature influence wildfire occurrence and intensity is critical for improving wildfire management strategies.
 
-Temperature, in particular, plays a critical role in wildfire occurrence and intensity. For instance, higher temperatures can increase the likelihood of fire ignition and accelerate fire spread. However, analyzing the relationship between climate factors (such as temperature) and wildfire events requires careful spatial analysis. This tutorial aims to guide users through the process of spatial analysis using poorly distributed climate data and wildfire event data, showing how such data issues can lead to misleading conclusions when applying spatial regression and interpolation techniques.
+This tutorial will guide you through a process of spatial analysis using real wildfire event data from the 2023 wildfire season. Temperature is a key variable, as higher temperatures increase the likelihood of fire ignition and promote faster fire spread. However, analyzing the relationship between wildfire events and climate variables is challenging, particularly when the climate data being used is poorly distributed. This is exactly the scenario we'll work through in this tutorial—demonstrating how poorly distributed data can distort the results, no matter how sophisticated the analysis methods are.
 
-## Problem Statement
-Spatial analysis of climate data, particularly when investigating events like wildfires, is often challenged by the following issues:
+### Problem Statement
+One of the main challenges we will face in this tutorial is working with poorly distributed climate data. In our case, the climate data comes from only one weather station, located in the southern region of the province. This means that the data is clustered, rather than spread evenly across BC, leaving large gaps where climate conditions are unknown. This clustering introduces bias into the analysis and can make it difficult to make meaningful connections between climate variables and wildfire occurrence across the entire province.
 
-Data clustering: When data points are overly concentrated in certain areas (e.g., wildfire occurrences clustered near urban areas), it can distort the analysis, leading to inaccurate results. Clustering can mask underlying trends and biases spatial models.
+In this tutorial, we will explore the implications of this poor data distribution by applying several spatial statistical techniques, such as interpolation methods like Inverse Distance Weighting (IDW) and Kriging, as well as regression models like Ordinary Least Squares (OLS) and Geographically Weighted Regression (GWR). We’ll also evaluate spatial autocorrelation using Moran’s I, all while acknowledging that the results might be skewed due to the lack of properly distributed data.
 
-Data quality: Poor-quality data, such as missing values, inconsistencies, or low resolution, can undermine the reliability of spatial regression and interpolation methods, making it difficult to draw meaningful conclusions from spatial analyses.
+### Why Data Quality Matters
+In today’s age of freely accessible data, it’s tempting to use whatever information is available online. However, as we’ll see throughout this tutorial, choosing the right data is just as important as the methods used to analyze it. In this case, the limited spatial coverage of the climate data significantly hampers our ability to make reliable conclusions about the relationship between temperature and wildfires. No matter how much statistical power we apply, if the data doesn’t reflect the true diversity of environmental conditions across the region, the results will be incomplete or even misleading.
+
+Our dataset is a prime example of how one small, poorly distributed sample can lead to an inaccurate understanding of a large-scale phenomenon. In contrast, gathering data from a range of sources—particularly data points that cover a larger area—could significantly improve the reliability of spatial analyses.
 
 ## Research Question:
-How does spatial autocorrelation in poorly distributed datasets affect the assumptions and outcomes of regression and spatial interpolation techniques used to analyze climate impacts on wildfire events in British Columbia?
+How does spatial autocorrelation in poorly distributed climate data influence the assumptions and outcomes of spatial regression and interpolation methods used to analyze temperature impacts on wildfire events in British Columbia?
 
 ## Objectives
-This tutorial aims to provide a step-by-step guide on performing spatial analyses while highlighting how data clustering and poor data quality can influence the results. The specific objectives include:
+This tutorial aims to demonstrate how to perform a variety of spatial analyses while working with poory distributed and limited data. The key objectives include:
 
-* Reading spatial data: Learn how to read in different types of spatial data (e.g., shapefiles, CSV files) and clean multiple datasets.
+* Reading and preparing spatial data: Learn how to read and clean climate and wildfire event data for analysis.
+* Spatial interpolation: Understand how methods like Inverse Distance Weighting (IDW) and Kriging can be used to estimate temperature values across the province, and examine how the limited spatial coverage affects their accuracy.
+* Regression analysis: Explore the use of Ordinary Least Squares (OLS) and Geographically Weighted Regression (GWR) to model the relationship between temperature and wildfire occurrences, and see how the lack of good data distribution affects the model results.
+* Spatial autocorrelation: Learn how to assess spatial autocorrelation using Moran’s I to identify patterns in wildfire occurrences and temperature data, and evaluate how data clustering impacts these patterns.
+* Evaluating results: Develop a critical understanding of how poor data distribution can influence your spatial analysis, and how to interpret results in this context.
 
-* Point pattern analysis and spatial autocorrelation: Understand how to conduct point pattern analysis and assess spatial autocorrelation in poorly distributed datasets.
-
-* Spatial interpolation: Learn how to apply spatial interpolation techniques and explore their limitations in the context of data clustering.Techniques such as Inverse Distance Weighting, and Kriging/ shoudl i inclue ordinary kriging????
-
-* Regression analysis: Explore how spatial autocorrelation impacts regression models, and assess the validity of these models when the underlying data quality is low.
-
-* Evaluating results: understand the impact of clustering and data quality on spatial analyses.
-
-Through these steps, the tutorial will demonstrate not only how to perform the analyses but also how poor data quality can lead to incorrect assumptions and biased outcomes, encouraging a more critical approach to spatial analysis in climate studies.
+This tutorial will walk you through these techniques, while also demonstrating the limitations of poor data distribution and its impact on the reliability of spatial analysis. By the end, you’ll gain a deeper understanding of the importance of selecting well-distributed data for spatial modeling and how to navigate challenges that arise when working with imperfect datasets.
 
 # Getting Started:
 Before beginning the analysis, ensure that the necessary libraries for spatial data manipulation and visualization are installed and loaded. These libraries include:
