@@ -48,6 +48,8 @@ install.packages(ggplot2)
 install.packages(maps)
 install.packages(viridis)
 install.packages(spgwr)
+install.packages("gridExtra")
+install.packages("grid")
 
 # Next Load all necessary Packages:
 library(tmap)
@@ -61,6 +63,9 @@ library(ggplot2)
 library(maps)
 library(viridis)
 library(spgwr)
+library(gridExtra)
+library(grid)
+
 ```
 
 # Set working directory
@@ -275,6 +280,84 @@ merged_data <- merged_data %>%
 
 # Save cleaned data to CSV
 write.csv(merged_data, file = "ClimateData.csv", row.names = FALSE)
+
+```
+### Descriptive statistics of wildfire data in 2023
+```{r MWildfire descript stats, echo = FALSE, message = FALSE}
+
+# Descriptive Statistics for Climate Data
+# Assuming your climate data is in a dataframe called df
+
+# Mean
+mean_temp <- mean(df$Temperature, na.rm = TRUE)
+# Mode 
+mode_temp <- as.numeric(names(sort(table(df$Temperature), decreasing = TRUE))[1])
+# Standard Deviation
+sd_temp <- sd(df$Temperature, na.rm = TRUE) 
+# Median
+med_temp <- median(df$Temperature, na.rm = TRUE)
+# Skewness
+skew_temp <- skewness(df$Temperature, na.rm = TRUE)[1]
+# Kurtosis
+kurt_temp <- kurtosis(df$Temperature, na.rm = TRUE)[1]
+# Coefficient of Variation
+cov_temp <- (sd_temp / mean_temp) * 100
+# Normal Distribution test
+norm_temp <- shapiro.test(df$Temperature)$p.value
+
+# Data for Table 1
+data_for_table1 <- data.frame(
+  Sample = c("Temperature (°C)"),
+  Mean = round(mean_temp, 3),
+  SD = round(sd_temp, 3),
+  Median = round(med_temp, 3),
+  Mode = round(mode_temp, 3)
+)
+
+# Data for Table 2
+data_for_table2 <- data.frame(
+  Sample = c("Temperature (°C)"),
+  Skewness = round(skew_temp, 3),
+  Kurtosis = round(kurt_temp, 3),
+  CoV = round(cov_temp, 3),
+  Normality = round(norm_temp, 5)
+)
+
+# Create Table 1 with Caption
+table1 <- tableGrob(data_for_table1, rows = c(""), theme = ttheme_default(base_size = 12))
+t1Caption <- textGrob("Table 1: Descriptive Statistics for Climate Data (Temperature).",
+                      gp = gpar(fontsize = 12))
+padding <- unit(5, "mm")
+
+table1 <- gtable_add_rows(table1, 
+                          heights = grobHeight(t1Caption) + padding, 
+                          pos = 0)
+
+table1 <- gtable_add_grob(table1,
+                          t1Caption, t = 1, l = 2, r = ncol(data_for_table1) + 1)
+
+# Create Table 2 with Caption
+table2 <- tableGrob(data_for_table2, rows = c(""), theme = ttheme_default(base_size = 12))
+t2Caption <- textGrob("Table 2: Descriptive Statistics for Climate Data (Temperature).",
+                      gp = gpar(fontsize = 12))
+
+table2 <- gtable_add_rows(table2, 
+                          heights = grobHeight(t2Caption) + padding, 
+                          pos = 0)
+
+table2 <- gtable_add_grob(table2,
+                          t2Caption, t = 1, l = 2, r = ncol(data_for_table2) + 1)
+
+# Export Table 1 as PNG
+png("Output_Table1.png", width = 1000, height = 500, res = 150)  # Adjusted size and resolution
+grid.arrange(table1, newpage = TRUE)
+dev.off()
+
+# Export Table 2 as PNG
+png("Output_Table2.png", width = 1000, height = 500, res = 150)  # Adjusted size and resolution
+grid.arrange(table2, newpage = TRUE)
+dev.off()
+
 ```
 
 # 3. Study Area and Data Overview
@@ -854,7 +937,114 @@ Figure 9. Map of residuals from OLS regression, visualizing the differences betw
 
 
 
-# ! potential for morans I here
+# Morans I here
+Moran's I is a statistical measure used to assess spatial autocorrelation, which refers to the degree of similarity or dissimilarity between values of a variable at geographically proximate locations. Specifically, it helps identify whether spatial patterns exhibit clustering (i.e., areas with similar values are close together), dispersion (i.e., values are spread out across space), or randomness. In spatial econometrics, Moran's I is often applied to residuals from a regression model to test whether there are patterns in the errors that are spatially structured.
+
+Moran's I ranges from -1 to +1:
+
+* Positive values suggest positive spatial autocorrelation (i.e., similar values are close together).
+* Negative values suggest negative spatial autocorrelation (i.e., dissimilar values are close together).
+* A value of zero suggests no spatial autocorrelation (random spatial distribution).
+
+
+In this analysis, we will use Moran's I to evaluate the spatial dependence of residuals from an Ordinary Least Squares (OLS) regression, which can reveal whether unmodeled spatial relationships exist in the data.
+
+```{r Morans I1, echo=FALSE, message=FALSE, warning=FALSE, results = "hide"}
+
+# Spatial Autocorrelation of Residuals using Moran's I
+# Read in the spatial data (assuming you have your 'final_data.shp')
+final_data_sf <- st_read("final_data.shp")
+st_crs(final_data_sf)
+
+# Prepare residuals from the OLS regression
+final_data_sf$residuals <- resid(ols_model)  # Add residuals from OLS regression
+
+# Remove any rows with NA values in residuals
+final_data_noNA <- final_data_sf[!is.na(final_data_sf$residuals), ]
+```
+
+Creating Spatial Neighbor Object:
+This step generates a neighbor object based on Queen's weights, which means polygons are considered neighbors if they share an edge or a vertex.
+```{r Morans I2, echo=FALSE, message=FALSE, warning=FALSE, results = "hide"}
+# Queen's weight: polygons are considered neighbors if they share an edge or a vertex
+residual_nb <- poly2nb(final_data_noNA)
+
+# Step 2: Convert the neighbors object to a spatial weights matrix
+residual_listw <- nb2listw(residual_nb, zero.policy = TRUE, style = "W")
+
+# Step 3: Calculate Global Moran's I for the residuals
+moran_result <- moran.test(final_data_noNA$residuals, residual_listw, zero.policy = TRUE)
+
+# Extract results from Moran's I test
+moran_I <- moran_result$estimate[[1]]
+expected_I <- moran_result$estimate[[2]]
+variance_I <- moran_result$estimate[[3]]
+z_score <- (moran_I - expected_I) / sqrt(variance_I)
+
+# Display results in a summary table
+moran_summary <- data.frame(
+  Metric = c("Moran's I", "Expected I", "Variance", "Z-Score"),
+  Value = c(moran_I, expected_I, variance_I, z_score)
+)
+
+print(moran_summary)
+
+# Save the summary table as a PNG image
+png("moran_summary_table.png", width = 800, height = 600, res = 300)
+
+# Use grid.table to print the summary table as text
+grid.table(moran_summary)
+
+# Close the PNG device to save the file
+dev.off()
+
+```
+![Morans I summary table](moran_summary_table.png)
+Figure 10.
+The summary table presents the key results from the Moran's I test, including the Moran's I statistic, the expected Moran's I, the variance, and the z-score, which tests the significance of the observed Moran's I.
+
+The following code generates a map visualizing the Queen’s weight scheme for the residuals and saves it as a PNG file.
+```{r Morans I3, echo=FALSE, message=FALSE, warning=FALSE, results = "hide"}
+# Optional: Create a map of the residuals with spatial weights (Queen's)
+# Convert neighbors to lines for visualization
+residual_net <- nb2lines(residual_nb, coords = st_geometry(st_centroid(final_data_noNA)))
+st_crs(residual_net) <- st_crs(final_data_noNA)
+
+# Plot Queen's Weight map
+queens_map <- tm_shape(final_data_noNA) +
+  tm_borders(col = 'lightgrey') +
+  tm_shape(residual_net) +
+  tm_lines(col = 'blue', lwd = 1) +
+  tm_layout(
+    title = "Queen's Weight Scheme for Residuals", 
+    title.position = c("center", "top"),
+    title.size = 1.2,
+    inner.margins = c(0.1, 0.1, 0.1, 0.15)  # Adjust margins to provide space for the title
+  )
+
+# Save the map to a PNG file
+tmap_save(queens_map, filename = "queens_map.png", width = 800, height = 600, dpi = 300)
+```
+![Queen neighbour](queens_map.png)
+Figure 11. Queen's weight map showing spatial relationships between residuals. The lines represent the neighboring polygons based on shared edges or vertices. The map visualizes how spatial relationships are structured in the dataset, based on the Queen's contiguity criterion.
+
+
+The following scatter plot visualizes the relationship between residuals and spatially lagged residuals, helping interpret the spatial autocorrelation of residuals.
+```{r Morans I3, echo=FALSE, message=FALSE, warning=FALSE, results = "hide"}
+# Step 4: Generate a scatter plot of Moran's I values
+png("moran_scatter_plot.png", width = 1800, height = 1500, res = 300)  # Start PNG device
+
+moran.plot(final_data_noNA$residuals, residual_listw, zero.policy = TRUE,
+           xlab = "Residuals", ylab = "Spatially Lagged Residuals",
+           main = "Moran's I Scatter Plot")
+
+dev.off()  # Close the PNG device after the plot is created
+
+```
+![Morans I Plot](moran_scatter_plot.png)
+Figure 12. Moran's I scatter plot of residuals, illustrating the spatial lag of residuals against the observed residuals. The plot helps assess the presence of spatial autocorrelation in the residuals, with the slope indicating the degree of spatial dependence.
+
+
 
 ## Geographically Weighted Regression (GWR) Analysis
 Geographically Weighted Regression (GWR) is a spatial analysis technique that models relationships between variables while accounting for their spatial variability. Unlike Ordinary Least Squares (OLS), which assumes a global relationship, GWR captures localized relationships by performing regressions at each data point, weighted by spatial proximity.
@@ -938,7 +1128,7 @@ ggplot(data = gwr_output_sf_fixed) +
 ggsave("gwr_fixed_bandwidth.png", width = 10, height = 8, dpi = 300)
 ```
 !GWRfixed200](gwr_fixed_bandwidth.png)
-Figure 10. Spatial distribution of the local R² values from the fixed 200km bandwidth GWR model.
+Figure 13. Spatial distribution of the local R² values from the fixed 200km bandwidth GWR model.
 
 ### Summary of GWR fixed bandwidth results
 The results indicate that the fixed bandwidth model does not effectively capture the spatial variability in the relationship between temperature and the number of fires. Most of the map shows local R² values ranging from 0 to 0.2, suggesting a weak explanatory power of the model in these areas. Additionally, the top-left corner exhibits negative local R² values as low as -0.4, which is unusual and indicates poor model performance.
@@ -983,7 +1173,7 @@ ggsave("gwr_optimal_bandwidth.png", width = 10, height = 8, dpi = 300)
 
 ```
 !GWRfixed200](gwr_optimal_bandwidth.png)
-Figure 11. Spatial distribution of the local R² values from the optimal bandwidth GWR model. The map reveals greater variability compared to the fixed bandwidth model. Two hotspots with local R² values around 0.2 are located in the northern sections along the west coast, while the rest of the province fluctuates between 0 and 0.1. Negative local R² values are minimal, but the generally low values suggest limited explanatory power in the model.
+Figure 14. Spatial distribution of the local R² values from the optimal bandwidth GWR model. The map reveals greater variability compared to the fixed bandwidth model. Two hotspots with local R² values around 0.2 are located in the northern sections along the west coast, while the rest of the province fluctuates between 0 and 0.1. Negative local R² values are minimal, but the generally low values suggest limited explanatory power in the model.
 
 #### Summary of Results of Optimal GWR Model
 The use of an optimal bandwidth allows the model to adapt to spatial heterogeneity more effectively, resulting in a map that better reflects local variations in the relationship between temperature and the number of fires. Unlike the fixed bandwidth model, this approach captures subtle spatial differences, as evidenced by two distinct hotspots of higher local R² values (approximately 0.2) in the northern sections along the west coast. However, most of the province exhibits local R² values between 0 and 0.1, with very few negative values.
