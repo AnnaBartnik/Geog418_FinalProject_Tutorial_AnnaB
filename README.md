@@ -1414,9 +1414,6 @@ What you should have learned from this tutorial is that the accuracy of your mod
 Going forward, ensure that you gather data from multiple reliable sources, check for good spatial distribution, and account for potential biases before running any spatial models. With high-quality data, these methods will allow you to draw stronger and more accurate conclusions from your analyses.
 
 # Refrences
-Here is your updated references list in alphabetical order:
-
-**References**
 
 BC Wildfire Service. (2023). Wildfire point data across British Columbia for 2023 [Data set]. BC Data Catalogue. Retrieved from https://www.for.gov.bc.ca/ftp/HPR/external/!publish/Maps_and_Data/GoogleEarth/WMB_Fires/
 
