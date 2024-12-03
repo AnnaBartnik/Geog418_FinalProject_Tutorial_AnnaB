@@ -1397,3 +1397,8 @@ What you should have learned from this tutorial is that the accuracy of your mod
 Going forward, ensure that you gather data from multiple reliable sources, check for good spatial distribution, and account for potential biases before running any spatial models. With high-quality data, these methods will allow you to draw stronger and more accurate conclusions from your analyses.
 
 # Refrences
+BC Hydro. (2023). BC Climate Station Data: Daily Maximum Temperature (January 1, 2023 – December 31, 2023) [Data set]. Pacific Climate Impacts Consortium. Retrieved from https://services.pacificclimate.org/met-data-portal-pcds/app/
+
+BC Wildfire Service. (2023). Wildfire point data across British Columbia for 2023 [Data set]. BC Data Catalogue. Retrieved from https://www.for.gov.bc.ca/ftp/HPR/external/!publish/Maps_and_Data/GoogleEarth/WMB_Fires/
+
+Government of British Columbia. (n.d.). British Columbia shapefile: Administrative boundaries [Shapefile]. BC Data Catalogue. Retrieved from https://www2.gov.bc.ca/gov/content/data/geographic-data-services/land-use/administrative-boundaries
