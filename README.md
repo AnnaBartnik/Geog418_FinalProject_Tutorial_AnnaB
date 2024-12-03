@@ -505,7 +505,7 @@ ggsave(
 ## Wildfire Point Data Map
 
 ![Wildfire Point Data Map](wildfire_points_map.png)
-*Figure 2: Locations of wildfire incidents in British Columbia (2023).* This map illustrates the locations of wildfire incidents in British Columbia (2023).
+*Figure 2: Wildfire points across BC* This map illustrates the locations of wildfire incidents in British Columbia (2023).
 
 # 4. Methods and Results
 ### Spatial Interpolation of Climate Data:
@@ -644,7 +644,7 @@ ggsave("Clipped_IDW_Interpolation_Map.png", plot = idw_plot, width = 10, height 
 ### Clipped IDW map
 
 ![IDW Map](Clipped_IDW_Interpolation_Map.png)
-Figure 3. *Clipped IDW Temperature Interpolation Map for British Columbia*
+*Figure 3. Clipped IDW Temperature Interpolation Map for British Columbia*
 
 ### Summary of IDW Results: 
 The map displays a spatially continuous temperature surface for British Columbia generated using IDW interpolation. Temperature predictions range from below 15°C to above 22.5°C, with notable instances of abrupt transitions between high and low values. These variations are particularly evident near isolated climate stations and along the boundaries of areas with sparse data coverage. The interpolation effectively highlights localized temperature trends while revealing abrupt changes that disrupt smooth transitions in certain regions.
@@ -730,13 +730,13 @@ dev.off()
 
 ```
 ![SemivariogramSpherical](Variogram_Spherical.png)
-Figure 4. Spherical Semivariogram
+*Figure 4. Spherical Semivariogram*
 
 ![SemiariogramExponential](Variogram_Exponential.png)
-Figure 5. Exponential Semivariogram
+*Figure 5. Exponential Semivariogram*
 
 ![SemiariogramGaussian](Variogram_Gaussian.png)
-Figure 6. Gaussian Semivariogram
+*Figure 6. Gaussian Semivariogram*
 
 #### Comparing the Semivariogram Models
 Let’s look at how each semivariogram model fits the data and why they are all reasonable choices in this case.
@@ -821,7 +821,7 @@ tmap_save(kriging_map, filename = "Clipped_Kriging_Results.png", width = 10, hei
 
 ```
 ![Clipped kriging raster to bc boundary](kriging_map.png)
-Figure 7. Clipped British Columbia boundary shapefile showing the absence of an interpolated kriging temperature surface. Despite running the Kriging code, no predicted temperature values were generated. Possible reasons are discussed in the following section.
+*Figure 7. Kriging Raster to BCboundary.* Clipped British Columbia boundary shapefile showing the absence of an interpolated kriging temperature surface. Despite running the Kriging code, no predicted temperature values were generated. Possible reasons are discussed in the following section.
 
 ### Summary of Kriging Results
 Although the code ran successfully, the output map lacked an interpolated surface. This highlights the importance of troubleshooting and verifying input parameters and spatial data compatibility when working with Kriging. In the discussion section, these issues will be explored further to refine the process and ensure reliable predictions in future attempts.
@@ -965,7 +965,7 @@ final_data_df <- st_drop_geometry(final_data)
 write.csv(final_data_df, "final_data.csv", row.names = FALSE)
 ```
 ![Temp_Events_Map](combined_temperature_fire_density_map.png)
-Figure 8. Wildfire Event Density and Temperature Map. The map illustrates the spatial distribution of wildfire event density across British Columbia overlaid with interpolated temperature data. Areas with higher densities of wildfire events are shown in warmer tones, with notable clustering in the southeast and along a diagonal band extending to the mid-coast. Additional high-density points are visible in the northeast corner and on Vancouver Island, while the remaining areas of BC exhibit little to no wildfire activity.
+*Figure 8. Wildfire Event Density and Temperature Map.* The map illustrates the spatial distribution of wildfire event density across British Columbia overlaid with interpolated temperature data. Areas with higher densities of wildfire events are shown in warmer tones, with notable clustering in the southeast and along a diagonal band extending to the mid-coast. Additional high-density points are visible in the northeast corner and on Vancouver Island, while the remaining areas of BC exhibit little to no wildfire activity.
 
 ### Summary of Results:
 The wildfire density map reveals a clear clustering of wildfire events in British Columbia, with the most significant concentrations occurring in the southeastern region and a diagonal band stretching northwest to the mid-coast. These areas correspond to regions with higher event densities, ranging from 40 to 80 wildfires per raster cell. Additional hotspots are detected in the northeastern part of the province and on Vancouver Island. The rest of BC shows sparse or no wildfire activity, with zero density in areas such as the northern interior and along the western coastal boundary.
@@ -1024,7 +1024,7 @@ ggplot(data = final_data_sf) +
 ggsave("residuals_map.png", width = 10, height = 8, dpi = 300)
 ```
 ![OLS Residual Map](residuals_map.png)
-Figure 9. Map of residuals from OLS regression, visualizing the differences between observed fire occurrences and those predicted by temperature. This map highlights areas where the model performs well (low residuals) and where discrepancies exist (high residuals). While intermediate in the analysis pipeline, this step provides critical insights into spatial heterogeneity, paving the way for further refinement or localized analysis.
+*Figure 9. Map of residuals from OLS regression.* This map visualizes the differences between observed fire occurrences and those predicted by temperature. This map highlights areas where the model performs well (low residuals) and where discrepancies exist (high residuals). While intermediate in the analysis pipeline, this step provides critical insights into spatial heterogeneity, paving the way for further refinement or localized analysis.
 
 
 
@@ -1091,8 +1091,7 @@ dev.off()
 
 ```
 ![Morans I summary table](moran_summary_table.png)
-Figure 10.
-The summary table presents the key results from the Moran's I test, including the Moran's I statistic, the expected Moran's I, the variance, and the z-score, which tests the significance of the observed Moran's I.
+*Figure 10. Morans I summary table * The summary table presents the key results from the Moran's I test, including the Moran's I statistic, the expected Moran's I, the variance, and the z-score, which tests the significance of the observed Moran's I.
 
 The following code generates a map visualizing the Queen’s weight scheme for the residuals and saves it as a PNG file.
 ```{r Morans I3, echo=FALSE, message=FALSE, warning=FALSE, results = "hide"}
@@ -1117,7 +1116,7 @@ queens_map <- tm_shape(final_data_noNA) +
 tmap_save(queens_map, filename = "queens_map.png", width = 800, height = 600, dpi = 300)
 ```
 ![Queen neighbour](queens_map.png)
-Figure 11. Queen's weight map showing spatial relationships between residuals. The lines represent the neighboring polygons based on shared edges or vertices. The map visualizes how spatial relationships are structured in the dataset, based on the Queen's contiguity criterion.
+*Figure 11. Queen's weight map shows spatial relationships between residuals.* The lines represent the neighbouring polygons based on shared edges or vertices. The map visualizes how spatial relationships are structured in the dataset, based on the Queen's contiguity criterion.
 
 
 The following scatter plot visualizes the relationship between residuals and spatially lagged residuals, helping interpret the spatial autocorrelation of residuals.
@@ -1133,7 +1132,7 @@ dev.off()  # Close the PNG device after the plot is created
 
 ```
 ![Morans I Plot](moran_scatter_plot.png)
-Figure 12. Moran's I scatter plot of residuals, illustrating the spatial lag of residuals against the observed residuals. The plot helps assess the presence of spatial autocorrelation in the residuals, with the slope indicating the degree of spatial dependence.
+*Figure 12. Moran's I scatter plot of residuals.* This map illustrates the spatial lag of residuals against the observed residuals. The plot helps assess the presence of spatial autocorrelation in the residuals, with the slope indicating the degree of spatial dependence.
 
 ## Summary of Morans I Results
 The results of the Moran's I test on the residuals from the OLS regression show a Moran's I value of -0.0029, which suggests a very weak negative spatial autocorrelation. The expected Moran's I under the null hypothesis is -0.0021, which is very close to the observed value, indicating that the spatial pattern of residuals is nearly random. The variance of the Moran's I is 0.0007, and the calculated z-score is -0.0295, which is very close to zero. This suggests that the observed Moran's I is not significantly different from the expected value, reinforcing the idea that there is no strong spatial autocorrelation in the residuals.
@@ -1237,7 +1236,7 @@ ggplot(data = gwr_output_sf_fixed) +
 ggsave("gwr_coefficients_fixed_bandwidth.png", width = 10, height = 8, dpi = 300)
 ```
 !GWRfixed200](gwr_fixed_bandwidth.png)
-Figure 13. Spatial distribution of the local R² values from the fixed 200km bandwidth GWR model.
+*Figure 13. Spatial distribution of the local R² values from the fixed 200km bandwidth GWR model.*
 
 ### Summary of GWR fixed bandwidth results
 The results indicate that the fixed bandwidth model does not effectively capture the spatial variability in the relationship between temperature and the number of fires. Most of the map shows local R² values ranging from 0 to 0.2, suggesting a weak explanatory power of the model in these areas. Additionally, the top-left corner exhibits negative local R² values as low as -0.4, which is unusual and indicates poor model performance.
@@ -1324,7 +1323,7 @@ ggsave("gwr_coefficients_optimal_bandwidth.png", width = 10, height = 8, dpi = 3
 
 ```
 !GWRfixed200](gwr_optimal_bandwidth.png)
-Figure 14. Spatial distribution of the local R² values from the optimal bandwidth GWR model. The map reveals greater variability compared to the fixed bandwidth model. Two hotspots with local R² values around 0.2 are located in the northern sections along the west coast, while the rest of the province fluctuates between 0 and 0.1. Negative local R² values are minimal, but the generally low values suggest limited explanatory power in the model.
+*Figure 14. Spatial distribution of the local R² values from the optimal bandwidth GWR model.* The map reveals greater variability compared to the fixed bandwidth model. Two hotspots with local R² values around 0.2 are located in the northern sections along the west coast, while the rest of the province fluctuates between 0 and 0.1. Negative local R² values are minimal, but the generally low values suggest limited explanatory power in the model.
 
 #### Summary of Results of Optimal GWR Model
 The use of an optimal bandwidth allows the model to adapt to spatial heterogeneity more effectively, resulting in a map that better reflects local variations in the relationship between temperature and the number of fires. Unlike the fixed bandwidth model, this approach captures subtle spatial differences, as evidenced by two distinct hotspots of higher local R² values (approximately 0.2) in the northern sections along the west coast. However, most of the province exhibits local R² values between 0 and 0.1, with very few negative values.
